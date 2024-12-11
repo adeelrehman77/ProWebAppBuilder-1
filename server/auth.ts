@@ -3,26 +3,21 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { type Express } from "express";
 import session from "express-session";
 import createMemoryStore from "memorystore";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
-import { promisify } from "util";
+import { createHash } from "crypto";
 import { users, insertUserSchema } from "@db/schema";
 import { db } from "../db";
 import { eq } from "drizzle-orm";
 
-const scryptAsync = promisify(scrypt);
-
-// Password hashing helpers
+// Simple hash function for passwords
 const crypto = {
-  hash: async (password: string): Promise<string> => {
-    const salt = randomBytes(16).toString("hex");
-    const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-    return `${buf.toString("hex")}:${salt}`;
+  hash: (password: string, salt: string): string => {
+    const hash = createHash('sha256').update(password).digest('hex');
+    return `${hash}:${salt}`;
   },
-  verify: async (password: string, hash: string): Promise<boolean> => {
-    const [hashedPassword, salt] = hash.split(":");
-    const keyBuffer = Buffer.from(hashedPassword, "hex");
-    const derivedKey = (await scryptAsync(password, salt, 64)) as Buffer;
-    return timingSafeEqual(keyBuffer, derivedKey);
+  verify: (password: string, hashedPassword: string): boolean => {
+    const [hash, salt] = hashedPassword.split(':');
+    const calculatedHash = createHash('sha256').update(password).digest('hex');
+    return hash === calculatedHash;
   }
 };
 
@@ -60,7 +55,7 @@ export function setupAuth(app: Express) {
         return done(null, false, { message: "Invalid username or password" });
       }
 
-      const isValid = await crypto.verify(password, user.password);
+      const isValid = crypto.verify(password, user.password);
       console.log('Password verification result:', isValid);
       
       if (!isValid) {
