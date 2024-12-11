@@ -30,6 +30,9 @@ export const orders = pgTable("orders", {
   userId: integer("user_id").references(() => users.id),
   status: text("status").notNull(), // Pending/Confirmed/Delivered/Cancelled
   totalAmount: integer("total_amount").notNull(),
+  paymentStatus: text("payment_status").notNull().default('Pending'), // Pending/Partial/Paid/Refunded
+  paymentMethod: text("payment_method"), // Cash/Card/UPI
+  paidAmount: integer("paid_amount").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

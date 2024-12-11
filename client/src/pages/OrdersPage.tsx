@@ -369,6 +369,8 @@ export default function OrdersPage() {
               <TableHead>#</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Total Amount</TableHead>
+              <TableHead>Paid Amount</TableHead>
+              <TableHead>Payment Status</TableHead>
               <TableHead>Created At</TableHead>
               <TableHead>Delivery</TableHead>
               <TableHead></TableHead>
@@ -400,6 +402,28 @@ export default function OrdersPage() {
                   </Select>
                 </TableCell>
                 <TableCell>₹{order.totalAmount}</TableCell>
+                <TableCell>₹{order.paidAmount}</TableCell>
+                <TableCell>
+                  <Select
+                    value={order.paymentStatus}
+                    onValueChange={(value) =>
+                      updateMutation.mutate({
+                        id: order.id,
+                        paymentStatus: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Partial">Partial</SelectItem>
+                      <SelectItem value="Paid">Paid</SelectItem>
+                      <SelectItem value="Refunded">Refunded</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </TableCell>
                 <TableCell>
                   {new Date(order.createdAt!).toLocaleDateString()}
                 </TableCell>
@@ -437,10 +461,72 @@ export default function OrdersPage() {
                               );
                             })}
                           </div>
-                          <div className="mt-4 pt-4 border-t">
+                          <div className="mt-4 pt-4 border-t space-y-4">
                             <div className="flex justify-between">
                               <span className="font-medium">Total Amount:</span>
                               <span>₹{order.totalAmount}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">Payment Method:</span>
+                              <Select
+                                value={order.paymentMethod || ''}
+                                onValueChange={(value) =>
+                                  updateMutation.mutate({
+                                    id: order.id,
+                                    paymentMethod: value,
+                                  })
+                                }
+                              >
+                                <SelectTrigger className="w-[150px]">
+                                  <SelectValue placeholder="Select method" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Cash">Cash</SelectItem>
+                                  <SelectItem value="Card">Card</SelectItem>
+                                  <SelectItem value="UPI">UPI</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">Paid Amount:</span>
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="number"
+                                  className="w-[100px]"
+                                  value={order.paidAmount}
+                                  onChange={(e) =>
+                                    updateMutation.mutate({
+                                      id: order.id,
+                                      paidAmount: parseInt(e.target.value) || 0,
+                                    })
+                                  }
+                                />
+                                <span className="text-sm text-muted-foreground">
+                                  of ₹{order.totalAmount}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">Payment Status:</span>
+                              <Select
+                                value={order.paymentStatus}
+                                onValueChange={(value) =>
+                                  updateMutation.mutate({
+                                    id: order.id,
+                                    paymentStatus: value,
+                                  })
+                                }
+                              >
+                                <SelectTrigger className="w-[150px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Pending">Pending</SelectItem>
+                                  <SelectItem value="Partial">Partial</SelectItem>
+                                  <SelectItem value="Paid">Paid</SelectItem>
+                                  <SelectItem value="Refunded">Refunded</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
                           </div>
                         </div>
