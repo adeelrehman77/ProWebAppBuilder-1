@@ -8,7 +8,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUser } from "@/hooks/use-user";
-import { ChevronDown, LogOut, Settings, User } from "lucide-react";
+import { ChevronDown, LogOut, Settings, User, Home } from "lucide-react";
+import { Link } from "wouter";
 
 export function Header() {
   const { user, logout } = useUser();
@@ -21,9 +22,12 @@ export function Header() {
         </div>
 
         <div className="ml-auto flex items-center space-x-4">
-          <Button variant="ghost" size="icon">
-            <Settings className="h-5 w-5" />
-          </Button>
+          <Link href="/">
+            <Button variant="ghost" className="flex items-center gap-2">
+              <Home className="h-5 w-5" />
+              Home
+            </Button>
+          </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
