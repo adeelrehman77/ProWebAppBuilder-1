@@ -278,6 +278,44 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Subscriptions
+  app.post("/api/subscriptions", async (req, res) => {
+    try {
+      const { products: items, ...subscriptionData } = req.body;
+
+      const result = await db.transaction(async (tx) => {
+        // Create subscription
+        const [subscription] = await tx
+          .insert(subscriptions)
+          .values({
+            ...subscriptionData,
+            status: "pending",
+          })
+          .returning();
+
+        // Create subscription items
+        await Promise.all(
+          items.map(async (item: { id: number; quantity: number }) => {
+            await tx
+              .insert(subscriptionItems)
+              .values({
+                subscriptionId: subscription.id,
+                productId: item.id,
+                quantity: item.quantity,
+              });
+          })
+        );
+
+        return subscription;
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error creating subscription:', error);
+      res.status(500).json({ error: 'Failed to create subscription' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

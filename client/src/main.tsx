@@ -28,6 +28,10 @@ function Router() {
     return <AuthPage />;
   }
 
+  if (window.location.pathname === '/customer') {
+    return <CustomerPage />;
+  }
+
   return (
     <div className="flex min-h-screen">
       <Switch>

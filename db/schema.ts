@@ -94,3 +94,31 @@ export type InsertOrderItem = typeof orderItems.$inferInsert;
 
 export type Delivery = typeof deliveries.$inferSelect;
 export type InsertDelivery = typeof deliveries.$inferInsert;
+
+export const subscriptions = pgTable("subscriptions", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  contactNumber: text("contact_number").notNull(),
+  address: text("address").notNull(),
+  location: text("location").notNull(),
+  buildingName: text("building_name").notNull(),
+  flatNumber: text("flat_number").notNull(),
+  paymentMode: text("payment_mode").notNull(),
+  status: text("status").notNull().default('pending'), // pending, approved, rejected
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const subscriptionItems = pgTable("subscription_items", {
+  id: serial("id").primaryKey(),
+  subscriptionId: integer("subscription_id").references(() => subscriptions.id),
+  productId: integer("product_id").references(() => products.id),
+  quantity: integer("quantity").notNull(),
+});
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = typeof subscriptions.$inferInsert;
+
+export type SubscriptionItem = typeof subscriptionItems.$inferSelect;
+export type InsertSubscriptionItem = typeof subscriptionItems.$inferInsert;
