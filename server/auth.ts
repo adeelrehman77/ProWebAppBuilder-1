@@ -10,21 +10,40 @@ import { db } from "../db";
 import { eq } from "drizzle-orm";
 
 const scryptAsync = promisify(scrypt);
+
 const crypto = {
   hash: async (password: string) => {
-    const salt = randomBytes(16).toString("hex");
-    const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-    return `${buf.toString("hex")}.${salt}`;
+    try {
+      const salt = randomBytes(16).toString("hex");
+      const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+      return `${buf.toString("hex")}.${salt}`;
+    } catch (error) {
+      console.error('Error hashing password:', error);
+      throw new Error('Failed to hash password');
+    }
   },
   compare: async (suppliedPassword: string, storedPassword: string) => {
-    if (!storedPassword || !storedPassword.includes('.')) {
+    try {
+      if (!storedPassword || !storedPassword.includes('.')) {
+        console.error('Invalid stored password format');
+        return false;
+      }
+
+      const [hashedPassword, salt] = storedPassword.split(".");
+      if (!hashedPassword || !salt) {
+        console.error('Missing hash or salt in stored password');
+        return false;
+      }
+
+      const suppliedPasswordBuf = (await scryptAsync(suppliedPassword, salt, 64)) as Buffer;
+      const hashedPasswordBuf = Buffer.from(hashedPassword, "hex");
+      
+      return timingSafeEqual(hashedPasswordBuf, suppliedPasswordBuf);
+    } catch (error) {
+      console.error('Error comparing passwords:', error);
       return false;
     }
-    const [hashedPassword, salt] = storedPassword.split(".");
-    const hashedPasswordBuf = Buffer.from(hashedPassword, "hex");
-    const suppliedPasswordBuf = (await scryptAsync(suppliedPassword, salt, 64)) as Buffer;
-    return timingSafeEqual(hashedPasswordBuf, suppliedPasswordBuf);
-  },
+  }
 };
 
 declare global {
