@@ -17,6 +17,11 @@ import { useUser } from "./hooks/use-user";
 function Router() {
   const { user, isLoading } = useUser();
 
+  // Handle customer page as public route
+  if (window.location.pathname === '/customer') {
+    return <CustomerPage />;
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -29,11 +34,6 @@ function Router() {
     return <AuthPage />;
   }
 
-  // Special route for customer page
-  if (window.location.pathname === '/customer') {
-    return <CustomerPage />;
-  }
-
   // Admin routes
   return (
     <div className="flex min-h-screen">
@@ -42,7 +42,6 @@ function Router() {
         <Route path="/orders" component={OrdersPage} />
         <Route path="/products" component={ProductsPage} />
         <Route path="/categories" component={CategoriesPage} />
-        <Route path="/customer" component={CustomerPage} />
         <Route>404 Page Not Found</Route>
       </Switch>
     </div>
