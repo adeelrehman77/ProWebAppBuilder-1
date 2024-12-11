@@ -14,42 +14,16 @@ const crypto = {
   hash: async (password: string) => {
     const salt = randomBytes(16).toString("hex");
     const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-    const hashedPassword = buf.toString("hex");
-    console.log('Generated hash:', { hashedPassword, salt });
-    return `${hashedPassword}.${salt}`;
+    return `${buf.toString("hex")}.${salt}`;
   },
   compare: async (suppliedPassword: string, storedPassword: string) => {
-    try {
-      console.log('Comparing passwords...');
-      if (!storedPassword || !storedPassword.includes('.')) {
-        console.error('Invalid password hash format');
-        return false;
-      }
-
-      const [hashedPassword, salt] = storedPassword.split(".");
-      if (!hashedPassword || !salt) {
-        console.error('Missing hash or salt components');
-        return false;
-      }
-
-      console.log('Processing supplied password with salt...');
-      const suppliedPasswordBuf = (await scryptAsync(suppliedPassword, salt, 64)) as Buffer;
-      const hashedPasswordBuf = Buffer.from(hashedPassword, "hex");
-      
-      console.log('Comparing password buffers...');
-      if (suppliedPasswordBuf.length !== hashedPasswordBuf.length) {
-        console.error('Buffer length mismatch:', {
-          supplied: suppliedPasswordBuf.length,
-          stored: hashedPasswordBuf.length
-        });
-        return false;
-      }
-
-      return timingSafeEqual(hashedPasswordBuf, suppliedPasswordBuf);
-    } catch (error) {
-      console.error('Error comparing passwords:', error);
+    if (!storedPassword || !storedPassword.includes('.')) {
       return false;
     }
+    const [hashedPassword, salt] = storedPassword.split(".");
+    const hashedPasswordBuf = Buffer.from(hashedPassword, "hex");
+    const suppliedPasswordBuf = (await scryptAsync(suppliedPassword, salt, 64)) as Buffer;
+    return timingSafeEqual(hashedPasswordBuf, suppliedPasswordBuf);
   },
 };
 
