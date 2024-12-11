@@ -27,9 +27,9 @@ export default function AuthPage() {
     },
   });
 
-  async function onSubmit(data: { mobile: string; password: string }) {
+  async function onSubmit(values: { username: string; password: string }) {
     try {
-      const result = await login(data);
+      const result = await login(values);
       if (!result.ok) {
         toast({
           variant: "destructive",

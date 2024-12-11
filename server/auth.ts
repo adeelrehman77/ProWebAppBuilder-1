@@ -61,7 +61,7 @@ export function setupAuth(app: Express) {
       { usernameField: 'username' },
       async (username, password, done) => {
         try {
-          console.log('Attempting login for username:', username);
+          console.log('Login attempt:', { username });
           
           const [user] = await db
             .select()
@@ -136,7 +136,7 @@ export function setupAuth(app: Express) {
         console.log('Login successful for user:', user.id);
         return res.json({
           message: "Login successful",
-          user: { id: user.id, mobile: user.mobile }
+          user: { id: user.id, username: user.username }
         });
       });
     })(req, res, next);
