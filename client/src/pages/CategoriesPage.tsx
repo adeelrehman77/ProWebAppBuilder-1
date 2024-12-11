@@ -101,6 +101,8 @@ export default function CategoriesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+      setOpen(false);
+      setEditingCategory(null);
       toast({ title: "Category updated successfully" });
     },
   });
@@ -150,12 +152,42 @@ export default function CategoriesPage() {
                     />
                   </div>
                 </div>
-                <Button
-                  onClick={() => createMutation.mutate(newCategory)}
-                  disabled={createMutation.isPending}
-                >
-                  Create Category
-                </Button>
+                {editingCategory ? (
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() =>
+                        updateMutation.mutate({
+                          id: editingCategory.id,
+                          name: editingCategory.name,
+                          image: editingCategory.image,
+                          active: editingCategory.active,
+                        })
+                      }
+                      disabled={updateMutation.isPending}
+                    >
+                      Update Category
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() =>
+                        updateMutation.mutate({
+                          id: editingCategory.id,
+                          active: false,
+                        })
+                      }
+                      disabled={updateMutation.isPending}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={() => createMutation.mutate(newCategory)}
+                    disabled={createMutation.isPending}
+                  >
+                    Create Category
+                  </Button>
+                )}
               </div>
             </DialogContent>
           </Dialog>

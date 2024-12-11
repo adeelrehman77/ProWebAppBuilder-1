@@ -133,6 +133,8 @@ export default function ProductsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      setOpen(false);
+      setEditingProduct(null);
       toast({ title: "Product updated successfully" });
     },
   });
@@ -219,12 +221,45 @@ export default function ProductsPage() {
                       }
                     />
                   </div>
-                  <Button
-                    onClick={() => createMutation.mutate(newProduct)}
-                    disabled={createMutation.isPending || !newProduct.categoryId}
-                  >
-                    Create Product
-                  </Button>
+                  {editingProduct ? (
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() =>
+                          updateMutation.mutate({
+                            id: editingProduct.id,
+                            name: editingProduct.name,
+                            brand: editingProduct.brand,
+                            categoryId: editingProduct.categoryId,
+                            price: editingProduct.price,
+                            image: editingProduct.image,
+                            active: editingProduct.active,
+                          })
+                        }
+                        disabled={updateMutation.isPending}
+                      >
+                        Update Product
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() =>
+                          updateMutation.mutate({
+                            id: editingProduct.id,
+                            active: false,
+                          })
+                        }
+                        disabled={updateMutation.isPending}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={() => createMutation.mutate(newProduct)}
+                      disabled={createMutation.isPending || !newProduct.categoryId}
+                    >
+                      Create Product
+                    </Button>
+                  )}
                 </div>
               </DialogContent>
             </Dialog>
