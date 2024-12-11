@@ -295,7 +295,11 @@ export default function OrdersPage() {
                   {new Date(order.createdAt!).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
-                  {/* TODO: Show delivery details */}
+                  {order.deliveries?.map((delivery) => (
+                    <div key={delivery.id} className="text-sm">
+                      {new Date(delivery.date).toLocaleDateString()} [{delivery.slot}] - {delivery.status}
+                    </div>
+                  ))}
                 </TableCell>
                 <TableCell>
                   <Button variant="ghost" size="sm">

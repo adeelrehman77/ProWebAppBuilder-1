@@ -70,11 +70,45 @@ export function registerRoutes(app: Express): Server {
 
   // Orders
   app.get("/api/orders", async (req, res) => {
-    const result = await db
-      .select()
-      .from(orders)
-      .orderBy(orders.createdAt);
-    res.json(result);
+    try {
+      const result = await db
+        .select({
+          id: orders.id,
+          status: orders.status,
+          totalAmount: orders.totalAmount,
+          createdAt: orders.createdAt,
+          deliveries: {
+            id: deliveries.id,
+            date: deliveries.date,
+            slot: deliveries.slot,
+            status: deliveries.status,
+          }
+        })
+        .from(orders)
+        .leftJoin(deliveries, eq(deliveries.orderId, orders.id))
+        .orderBy(orders.createdAt);
+
+      // Group deliveries by order
+      const ordersWithDeliveries = result.reduce((acc: any[], curr) => {
+        const existingOrder = acc.find(o => o.id === curr.id);
+        if (existingOrder) {
+          if (curr.deliveries.id) {
+            existingOrder.deliveries.push(curr.deliveries);
+          }
+        } else {
+          acc.push({
+            ...curr,
+            deliveries: curr.deliveries.id ? [curr.deliveries] : []
+          });
+        }
+        return acc;
+      }, []);
+
+      res.json(ordersWithDeliveries);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      res.status(500).json({ error: 'Failed to fetch orders' });
+    }
   });
 
   app.post("/api/orders", async (req, res) => {
