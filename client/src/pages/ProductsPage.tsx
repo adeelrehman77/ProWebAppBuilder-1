@@ -36,6 +36,10 @@ type NewProduct = {
   price: number;
   active: boolean;
   image?: string | null;
+  stockQuantity: number;
+  minStockLevel: number;
+  unit: string;
+  sku?: string;
 };
 
 export default function ProductsPage() {
@@ -49,6 +53,10 @@ export default function ProductsPage() {
     categoryId: null,
     price: 15,
     active: true,
+    stockQuantity: 0,
+    minStockLevel: 10,
+    unit: 'units',
+    sku: '',
   });
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -242,7 +250,7 @@ export default function ProductsPage() {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Price</label>
+                    <label className="text-sm font-medium">Price (AED)</label>
                     <Input
                       type="number"
                       value={newProduct.price}
@@ -250,6 +258,56 @@ export default function ProductsPage() {
                         setNewProduct({
                           ...newProduct,
                           price: parseInt(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Stock Quantity</label>
+                    <Input
+                      type="number"
+                      value={newProduct.stockQuantity}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          stockQuantity: parseInt(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Minimum Stock Level</label>
+                    <Input
+                      type="number"
+                      value={newProduct.minStockLevel}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          minStockLevel: parseInt(e.target.value),
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Unit</label>
+                    <Input
+                      value={newProduct.unit}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          unit: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">SKU</label>
+                    <Input
+                      value={newProduct.sku}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          sku: e.target.value,
                         })
                       }
                     />
@@ -306,8 +364,11 @@ export default function ProductsPage() {
               <TableHead>Name</TableHead>
               <TableHead>Brand</TableHead>
               <TableHead>Category</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Is Active?</TableHead>
+              <TableHead>Price (AED)</TableHead>
+              <TableHead>Stock</TableHead>
+              <TableHead>Min. Stock</TableHead>
+              <TableHead>SKU</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
@@ -333,7 +394,14 @@ export default function ProductsPage() {
                 <TableCell>
                   {categories?.find((c) => c.id === product.categoryId)?.name}
                 </TableCell>
-                <TableCell>₹{product.price}.00/Units</TableCell>
+                <TableCell>AED {product.price}.00/{product.unit}</TableCell>
+                <TableCell>
+                  <span className={`${product.stockQuantity <= product.minStockLevel ? 'text-red-500' : 'text-green-500'}`}>
+                    {product.stockQuantity}
+                  </span>
+                </TableCell>
+                <TableCell>{product.minStockLevel}</TableCell>
+                <TableCell>{product.sku}</TableCell>
                 <TableCell>
                   <Button
                     variant={product.active ? "default" : "secondary"}

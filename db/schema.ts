@@ -23,6 +23,10 @@ export const products = pgTable("products", {
   categoryId: integer("category_id").references(() => categories.id),
   price: integer("price").notNull(),
   active: boolean("active").default(true),
+  stockQuantity: integer("stock_quantity").notNull().default(0),
+  minStockLevel: integer("min_stock_level").notNull().default(0),
+  unit: text("unit").notNull().default('units'),
+  sku: text("sku").unique(),
 });
 
 export const orders = pgTable("orders", {
