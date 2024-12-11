@@ -103,6 +103,29 @@ export default function OrdersPage() {
     },
   });
 
+  const updateDeliveryMutation = useMutation({
+    mutationFn: async ({ id, ...delivery }: { id: number; status: string }) => {
+      const res = await fetch(`/api/deliveries/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(delivery),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      toast({ title: "Delivery status updated successfully" });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Failed to update delivery status",
+        description: error.message,
+      });
+    },
+  });
+
   const addItem = (productId: number) => {
     const product = products?.find((p) => p.id === productId);
     if (!product) return;
