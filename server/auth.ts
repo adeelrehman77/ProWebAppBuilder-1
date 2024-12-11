@@ -80,12 +80,20 @@ export function setupAuth(app: Express) {
           if (!user) {
             return done(null, false, { message: "Invalid mobile number." });
           }
+
+          // Ensure we have a valid password hash format
+          if (!user.password || !user.password.includes('.')) {
+            console.error('Invalid password hash format for user:', mobile);
+            return done(null, false, { message: "Invalid password format." });
+          }
+
           const isMatch = await crypto.compare(password, user.password);
           if (!isMatch) {
             return done(null, false, { message: "Incorrect password." });
           }
           return done(null, user);
         } catch (err) {
+          console.error('Login error:', err);
           return done(err);
         }
       }
