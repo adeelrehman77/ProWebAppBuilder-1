@@ -14,7 +14,9 @@ const crypto = {
   hash: async (password: string) => {
     const salt = randomBytes(16).toString("hex");
     const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-    return `${buf.toString("hex")}.${salt}`;
+    const hashedPassword = buf.toString("hex");
+    console.log('Generated hash:', { hashedPassword, salt });
+    return `${hashedPassword}.${salt}`;
   },
   compare: async (suppliedPassword: string, storedPassword: string) => {
     try {
