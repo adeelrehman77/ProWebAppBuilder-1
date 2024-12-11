@@ -19,16 +19,24 @@ const crypto = {
   compare: async (suppliedPassword: string, storedPassword: string) => {
     try {
       // Handle case where password isn't in correct format
-      if (!storedPassword.includes('.')) {
+      if (!storedPassword || !storedPassword.includes('.')) {
+        console.error('Invalid password hash format');
         return false;
       }
+
       const [hashedPassword, salt] = storedPassword.split(".");
-      const hashedPasswordBuf = Buffer.from(hashedPassword, "hex");
+      if (!hashedPassword || !salt) {
+        console.error('Missing hash or salt components');
+        return false;
+      }
+
       const suppliedPasswordBuf = (await scryptAsync(
         suppliedPassword,
         salt,
         64
       )) as Buffer;
+      
+      const hashedPasswordBuf = Buffer.from(hashedPassword, "hex");
       return timingSafeEqual(hashedPasswordBuf, suppliedPasswordBuf);
     } catch (error) {
       console.error('Error comparing passwords:', error);
@@ -71,6 +79,8 @@ export function setupAuth(app: Express) {
       { usernameField: 'mobile' },
       async (mobile, password, done) => {
         try {
+          console.log('Attempting login for mobile:', mobile);
+          
           const [user] = await db
             .select()
             .from(users)
@@ -78,19 +88,19 @@ export function setupAuth(app: Express) {
             .limit(1);
 
           if (!user) {
+            console.log('User not found');
             return done(null, false, { message: "Invalid mobile number." });
           }
 
-          // Ensure we have a valid password hash format
-          if (!user.password || !user.password.includes('.')) {
-            console.error('Invalid password hash format for user:', mobile);
-            return done(null, false, { message: "Invalid password format." });
-          }
-
+          console.log('User found, verifying password');
           const isMatch = await crypto.compare(password, user.password);
+          
           if (!isMatch) {
+            console.log('Password verification failed');
             return done(null, false, { message: "Incorrect password." });
           }
+
+          console.log('Login successful');
           return done(null, user);
         } catch (err) {
           console.error('Login error:', err);
@@ -126,11 +136,22 @@ export function setupAuth(app: Express) {
     }
 
     passport.authenticate("local", (err: any, user: Express.User, info: IVerifyOptions) => {
-      if (err) return next(err);
-      if (!user) return res.status(400).send(info.message ?? "Login failed");
+      if (err) {
+        console.error('Authentication error:', err);
+        return next(err);
+      }
+      if (!user) {
+        console.log('Authentication failed:', info.message);
+        return res.status(400).send(info.message ?? "Login failed");
+      }
 
       req.logIn(user, (err) => {
-        if (err) return next(err);
+        if (err) {
+          console.error('Login error:', err);
+          return next(err);
+        }
+        
+        console.log('Login successful for user:', user.id);
         return res.json({
           message: "Login successful",
           user: { id: user.id, mobile: user.mobile }
