@@ -56,27 +56,21 @@ export default function OrdersPage() {
     startDate: new Date().toISOString().split('T')[0],
   });
 
-  const { data: orders, error: ordersError } = useQuery<Order[]>({
+  const { data: orders = [], isError: hasOrderError } = useQuery<Order[]>({
     queryKey: ["/api/orders"],
-    onError: (error) => {
-      console.error('Error fetching orders:', error);
-      toast({
-        variant: "destructive",
-        title: "Failed to fetch orders",
-        description: error.message
-      });
+    queryFn: async () => {
+      const response = await fetch('/api/orders');
+      if (!response.ok) throw new Error('Failed to fetch orders');
+      return response.json();
     }
   });
 
-  const { data: products, error: productsError } = useQuery<Product[]>({
+  const { data: products = [], isError: hasProductError } = useQuery<Product[]>({
     queryKey: ["/api/products"],
-    onError: (error) => {
-      console.error('Error fetching products:', error);
-      toast({
-        variant: "destructive",
-        title: "Failed to fetch products",
-        description: error.message
-      });
+    queryFn: async () => {
+      const response = await fetch('/api/products');
+      if (!response.ok) throw new Error('Failed to fetch products');
+      return response.json();
     }
   });
 
@@ -100,6 +94,8 @@ export default function OrdersPage() {
       setNewOrder({
         items: [],
         totalAmount: 0,
+        isRecurring: false,
+        startDate: new Date().toISOString().split('T')[0],
       });
       toast({ title: "Order created successfully" });
     },

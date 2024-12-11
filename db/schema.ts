@@ -108,7 +108,7 @@ export const subscriptions = pgTable("subscriptions", {
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
-  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const subscriptionItems = pgTable("subscription_items", {
