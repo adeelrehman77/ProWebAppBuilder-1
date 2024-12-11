@@ -11,6 +11,9 @@ import ProductsPage from "./pages/ProductsPage";
 import CategoriesPage from "./pages/CategoriesPage";
 import OrdersPage from "./pages/OrdersPage";
 import CustomerPage from "./pages/CustomerPage";
+import ReportsPage from "./pages/ReportsPage";
+import SettingsPage from "./pages/SettingsPage";
+import PaymentsPage from "./pages/PaymentsPage";
 import { Loader2 } from "lucide-react";
 import { useUser } from "./hooks/use-user";
 
@@ -42,6 +45,9 @@ function Router() {
         <Route path="/orders" component={OrdersPage} />
         <Route path="/products" component={ProductsPage} />
         <Route path="/categories" component={CategoriesPage} />
+        <Route path="/reports" component={ReportsPage} />
+        <Route path="/settings" component={SettingsPage} />
+        <Route path="/payments" component={PaymentsPage} />
         <Route>404 Page Not Found</Route>
       </Switch>
     </div>
