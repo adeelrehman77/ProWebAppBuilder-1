@@ -228,6 +228,20 @@ export function registerRoutes(app: Express) {
     res.json(result[0]);
   });
 
+  app.put("/api/deliveries/:id", async (req, res) => {
+    try {
+      const result = await db
+        .update(deliveries)
+        .set(req.body)
+        .where(eq(deliveries.id, parseInt(req.params.id)))
+        .returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error('Error updating delivery:', error);
+      res.status(500).json({ error: 'Failed to update delivery' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
