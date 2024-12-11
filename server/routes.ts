@@ -284,11 +284,13 @@ export function registerRoutes(app: Express) {
       const { products: items, ...subscriptionData } = req.body;
 
       const result = await db.transaction(async (tx) => {
-        // Create subscription
+        // Create subscription with properly formatted dates
         const [subscription] = await tx
           .insert(subscriptions)
           .values({
             ...subscriptionData,
+            startDate: new Date(subscriptionData.startDate),
+            endDate: new Date(subscriptionData.endDate),
             status: "pending",
           })
           .returning();

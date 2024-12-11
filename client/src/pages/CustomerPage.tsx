@@ -56,10 +56,14 @@ export default function CustomerPage() {
   const handleSubscribe = async () => {
     try {
       // Convert date strings to ISO format for server
+      // Ensure dates are properly formatted for the server
+      const startDate = new Date(subscriptionForm.startDate);
+      const endDate = new Date(subscriptionForm.endDate);
+      
       const formData = {
         ...subscriptionForm,
-        startDate: new Date(subscriptionForm.startDate + 'T00:00:00Z').toISOString(),
-        endDate: new Date(subscriptionForm.endDate + 'T00:00:00Z').toISOString(),
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
         products: selectedProducts,
       };
 

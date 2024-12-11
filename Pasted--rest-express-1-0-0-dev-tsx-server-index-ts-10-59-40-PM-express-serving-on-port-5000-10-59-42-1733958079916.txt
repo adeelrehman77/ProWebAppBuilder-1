@@ -1,0 +1,34 @@
+
+> rest-express@1.0.0 dev
+> tsx server/index.ts
+
+10:59:40 PM [express] serving on port 5000
+10:59:42 PM [express] GET /api/user 401 in 2ms :: {"error":"Not authenticated","message":"You must be…
+10:59:42 PM [express] GET /api/user 401 in 0ms :: {"error":"Not authenticated","message":"You must be…
+11:00:09 PM [express] GET /api/user 401 in 0ms :: {"error":"Not authenticated","message":"You must be…
+11:00:10 PM [express] GET /api/products 304 in 965ms :: [{"id":3,"name":"Non Veg Lunch","image":null,…
+11:00:10 PM [express] GET /api/categories 304 in 1031ms :: [{"id":1,"name":"Lunch","image":"","active…
+Error creating subscription: TypeError: value.toISOString is not a function
+    at PgTimestamp.mapToDriverValue (/home/runner/ProWebAppBuilder-1/node_modules/src/pg-core/columns/timestamp.ts:66:16)
+    at <anonymous> (/home/runner/ProWebAppBuilder-1/node_modules/src/sql/sql.ts:222:69)
+    at Array.map (<anonymous>)
+    at SQL.buildQueryFromSourceParams (/home/runner/ProWebAppBuilder-1/node_modules/src/sql/sql.ts:147:30)
+    at <anonymous> (/home/runner/ProWebAppBuilder-1/node_modules/src/sql/sql.ts:169:17)
+    at Array.map (<anonymous>)
+    at SQL.buildQueryFromSourceParams (/home/runner/ProWebAppBuilder-1/node_modules/src/sql/sql.ts:147:30)
+    at <anonymous> (/home/runner/ProWebAppBuilder-1/node_modules/src/sql/sql.ts:173:17)
+    at Array.map (<anonymous>)
+    at SQL.buildQueryFromSourceParams (/home/runner/ProWebAppBuilder-1/node_modules/src/sql/sql.ts:147:30)
+    at <anonymous> (/home/runner/ProWebAppBuilder-1/node_modules/src/sql/sql.ts:123:23)
+    at Object.startActiveSpan (/home/runner/ProWebAppBuilder-1/node_modules/src/tracing.ts:27:11)
+    at SQL.toQuery (/home/runner/ProWebAppBuilder-1/node_modules/src/sql/sql.ts:122:17)
+    at PgDialect.sqlToQuery (/home/runner/ProWebAppBuilder-1/node_modules/src/pg-core/dialect.ts:591:14)
+    at <anonymous> (/home/runner/ProWebAppBuilder-1/node_modules/src/pg-core/query-builders/insert.ts:397:19)
+    at Object.startActiveSpan (/home/runner/ProWebAppBuilder-1/node_modules/src/tracing.ts:27:11)
+    at QueryPromise._prepare (/home/runner/ProWebAppBuilder-1/node_modules/src/pg-core/query-builders/insert.ts:392:17)
+    at <anonymous> (/home/runner/ProWebAppBuilder-1/node_modules/src/pg-core/query-builders/insert.ts:414:16)
+    at Object.startActiveSpan (/home/runner/ProWebAppBuilder-1/node_modules/src/tracing.ts:27:11)
+    at QueryPromise.execute (/home/runner/ProWebAppBuilder-1/node_modules/src/pg-core/query-builders/insert.ts:413:17)
+    at QueryPromise.then (/home/runner/ProWebAppBuilder-1/node_modules/src/query-promise.ts:31:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+11:00:47 PM [express] POST /api/subscriptions 500 in 1209ms :: {"error":"Failed to create subscriptio…
