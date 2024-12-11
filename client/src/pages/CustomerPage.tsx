@@ -31,8 +31,8 @@ export default function CustomerPage() {
     buildingName: "",
     flatNumber: "",
     paymentMode: "cash", // cash or bank_transfer
-    startDate: new Date(),
-    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   });
 
   const { data: products } = useQuery<Product[]>({
@@ -55,10 +55,11 @@ export default function CustomerPage() {
 
   const handleSubscribe = async () => {
     try {
+      // Convert date strings to ISO format for server
       const formData = {
         ...subscriptionForm,
-        startDate: new Date(subscriptionForm.startDate),
-        endDate: new Date(subscriptionForm.endDate),
+        startDate: new Date(subscriptionForm.startDate + 'T00:00:00Z').toISOString(),
+        endDate: new Date(subscriptionForm.endDate + 'T00:00:00Z').toISOString(),
         products: selectedProducts,
       };
 
