@@ -177,11 +177,130 @@ export default function OrdersPage() {
                   <Plus className="mr-2 h-4 w-4" /> New Order
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>Create Order</DialogTitle>
                 </DialogHeader>
-                {/* Rest of the dialog content */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Add Products</label>
+                    <Select
+                      onValueChange={(value) => addItem(parseInt(value))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select product" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {products?.map((product) => (
+                          <SelectItem
+                            key={product.id}
+                            value={product.id.toString()}
+                            disabled={!product.active}
+                          >
+                            {product.name} - ₹{product.price}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <h3 className="font-medium mb-2">Order Items</h3>
+                    <div className="space-y-2">
+                      {newOrder.items.map((item, index) => {
+                        const product = products?.find((p) => p.id === item.productId);
+                        return (
+                          <div key={index} className="flex items-center gap-2">
+                            <span className="flex-1">{product?.name}</span>
+                            <Input
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) => {
+                                const quantity = parseInt(e.target.value);
+                                setNewOrder((prev) => ({
+                                  ...prev,
+                                  items: prev.items.map((i, idx) =>
+                                    idx === index ? { ...i, quantity } : i
+                                  ),
+                                  totalAmount: prev.items.reduce(
+                                    (sum, i, idx) =>
+                                      sum +
+                                      i.price *
+                                        (idx === index ? quantity : i.quantity),
+                                    0
+                                  ),
+                                }));
+                              }}
+                              className="w-20"
+                            />
+                            <span>× ₹{item.price}</span>
+                            <span>= ₹{item.price * item.quantity}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-medium">Total Amount: ₹{newOrder.totalAmount}</h3>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="font-medium">Delivery Details</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Delivery Date</label>
+                        <Input
+                          type="date"
+                          min={new Date().toISOString().split('T')[0]}
+                          onChange={(e) =>
+                            setNewOrder((prev) => ({
+                              ...prev,
+                              delivery: {
+                                ...prev.delivery,
+                                date: new Date(e.target.value).toISOString(),
+                              } as any,
+                            }))
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Delivery Slot</label>
+                        <Select
+                          onValueChange={(value) =>
+                            setNewOrder((prev) => ({
+                              ...prev,
+                              delivery: {
+                                ...prev.delivery,
+                                slot: value as "Lunch" | "Dinner",
+                              } as any,
+                            }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select slot" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Lunch">Lunch (11:00 AM - 2:00 PM)</SelectItem>
+                            <SelectItem value="Dinner">Dinner (7:00 PM - 10:00 PM)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => createMutation.mutate(newOrder)}
+                    disabled={
+                      createMutation.isPending ||
+                      newOrder.items.length === 0 ||
+                      !newOrder.delivery?.date ||
+                      !newOrder.delivery?.slot
+                    }
+                  >
+                    Create Order
+                  </Button>
+                </div>
               </DialogContent>
             </Dialog>
           </div>
@@ -229,138 +348,7 @@ export default function OrdersPage() {
               </div>
             </div>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" /> New Order
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create Order</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Add Products</label>
-                  <Select
-                    onValueChange={(value) => addItem(parseInt(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select product" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {products?.map((product) => (
-                        <SelectItem
-                          key={product.id}
-                          value={product.id.toString()}
-                          disabled={!product.active}
-                        >
-                          {product.name} - ₹{product.price}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <h3 className="font-medium mb-2">Order Items</h3>
-                  <div className="space-y-2">
-                    {newOrder.items.map((item, index) => {
-                      const product = products?.find((p) => p.id === item.productId);
-                      return (
-                        <div key={index} className="flex items-center gap-2">
-                          <span className="flex-1">{product?.name}</span>
-                          <Input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) => {
-                              const quantity = parseInt(e.target.value);
-                              setNewOrder((prev) => ({
-                                ...prev,
-                                items: prev.items.map((i, idx) =>
-                                  idx === index ? { ...i, quantity } : i
-                                ),
-                                totalAmount: prev.items.reduce(
-                                  (sum, i, idx) =>
-                                    sum +
-                                    i.price *
-                                      (idx === index ? quantity : i.quantity),
-                                  0
-                                ),
-                              }));
-                            }}
-                            className="w-20"
-                          />
-                          <span>× ₹{item.price}</span>
-                          <span>= ₹{item.price * item.quantity}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-medium">Total Amount: ₹{newOrder.totalAmount}</h3>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-medium">Delivery Details</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Delivery Date</label>
-                      <Input
-                        type="date"
-                        min={new Date().toISOString().split('T')[0]}
-                        onChange={(e) =>
-                          setNewOrder((prev) => ({
-                            ...prev,
-                            delivery: {
-                              ...prev.delivery,
-                              date: new Date(e.target.value).toISOString(),
-                            } as any,
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Delivery Slot</label>
-                      <Select
-                        onValueChange={(value) =>
-                          setNewOrder((prev) => ({
-                            ...prev,
-                            delivery: {
-                              ...prev.delivery,
-                              slot: value as "Lunch" | "Dinner",
-                            } as any,
-                          }))
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select slot" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Lunch">Lunch (11:00 AM - 2:00 PM)</SelectItem>
-                          <SelectItem value="Dinner">Dinner (7:00 PM - 10:00 PM)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={() => createMutation.mutate(newOrder)}
-                  disabled={
-                    createMutation.isPending ||
-                    newOrder.items.length === 0 ||
-                    !newOrder.delivery?.date ||
-                    !newOrder.delivery?.slot
-                  }
-                >
-                  Create Order
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          
         </div>
 
         <Table>
