@@ -184,43 +184,49 @@ export function registerRoutes(app: Express) {
       }
 
       const createOrder = async (tx: any, deliveryDate: Date) => {
-        // Create order
-        const [order] = await tx
-          .insert(orders)
-          .values({
-            status: "Pending",
-            totalAmount,
-          })
-          .returning();
+        try {
+          // Create order
+          const [order] = await tx
+            .insert(orders)
+            .values({
+              status: "Pending",
+              totalAmount,
+            })
+            .returning();
 
-        // Create order items
-        const orderItems = await Promise.all(
-          items.map((item: any) =>
-            tx
-              .insert(orderItems)
+          // Create order items
+          const createdItems = await Promise.all(
+            items.map(async (item: any) => {
+              const [createdItem] = await tx
+                .insert(orderItems)
+                .values({
+                  orderId: order.id,
+                  productId: item.productId,
+                  quantity: item.quantity,
+                  price: item.price,
+                })
+                .returning();
+              return createdItem;
+            })
+          );
+
+          // Create delivery
+          if (delivery) {
+            await tx
+              .insert(deliveries)
               .values({
                 orderId: order.id,
-                productId: item.productId,
-                quantity: item.quantity,
-                price: item.price,
-              })
-              .returning()
-          )
-        );
+                date: deliveryDate,
+                slot: delivery.slot,
+                status: "Pending",
+              });
+          }
 
-        // Create delivery
-        if (delivery) {
-          await tx
-            .insert(deliveries)
-            .values({
-              orderId: order.id,
-              date: deliveryDate,
-              slot: delivery.slot,
-              status: "Pending",
-            });
+          return { order, items: createdItems };
+        } catch (err) {
+          console.error('Error in createOrder:', err);
+          throw err;
         }
-
-        return { order, items: orderItems.map((i: any) => i[0]) };
       };
 
       const result = await db.transaction(async (tx) => {
@@ -231,15 +237,15 @@ export function registerRoutes(app: Express) {
         // For recurring orders, create orders for each day until end date (max 30 days)
         const start = new Date(startDate);
         const end = new Date(endDate || new Date(start.getTime() + 29 * 24 * 60 * 60 * 1000));
-        const orders = [];
+        const createdOrders = [];
         
         let currentDate = new Date(start);
         while (currentDate <= end) {
-          orders.push(await createOrder(tx, new Date(currentDate)));
+          createdOrders.push(await createOrder(tx, new Date(currentDate)));
           currentDate.setDate(currentDate.getDate() + 1);
         }
 
-        return orders;
+        return createdOrders;
       });
 
       res.json(result);
