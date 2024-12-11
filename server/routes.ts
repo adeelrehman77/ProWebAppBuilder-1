@@ -2,7 +2,7 @@ import { type Express } from "express";
 import { createServer } from "http";
 import { setupAuth } from "./auth";
 import { db } from "../db";
-import { categories, products, deliveries, orders, orderItems } from "@db/schema";
+import { categories, products, deliveries, orders, orderItems, subscriptions, subscriptionItems } from "@db/schema";
 import { eq } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
