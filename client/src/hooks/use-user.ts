@@ -23,11 +23,14 @@ async function handleRequest(
 
     if (!response.ok) {
       if (response.status >= 500) {
-        return { ok: false, message: response.statusText };
+        return { ok: false, message: "Server error occurred. Please try again later." };
       }
 
-      const message = await response.text();
-      return { ok: false, message };
+      const data = await response.json();
+      return { 
+        ok: false, 
+        message: data.message || data.error || "Authentication failed"
+      };
     }
 
     return { ok: true };

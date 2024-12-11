@@ -29,19 +29,30 @@ export default function AuthPage() {
 
   async function onSubmit(values: { username: string; password: string }) {
     try {
-      const result = await login(values);
+      const result = await login({
+        username: values.username,
+        password: values.password
+      });
+      
       if (!result.ok) {
         toast({
           variant: "destructive",
-          title: "Error",
-          description: result.message,
+          title: "Login Failed",
+          description: result.message || "Invalid username or password",
         });
+        return;
       }
+      
+      toast({
+        title: "Success",
+        description: "Logged in successfully",
+      });
     } catch (error: any) {
+      console.error('Login error:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description: "An unexpected error occurred. Please try again.",
       });
     }
   }
