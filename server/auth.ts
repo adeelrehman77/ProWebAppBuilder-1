@@ -16,7 +16,9 @@ const crypto = {
     try {
       const salt = randomBytes(16).toString("hex");
       const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-      return `${buf.toString("hex")}.${salt}`;
+      const hashedPassword = buf.toString("hex");
+      console.log('Generated hash:', { hashedPassword, salt });
+      return `${hashedPassword}.${salt}`;
     } catch (error) {
       console.error('Error hashing password:', error);
       throw new Error('Failed to hash password');
@@ -24,6 +26,8 @@ const crypto = {
   },
   compare: async (suppliedPassword: string, storedPassword: string) => {
     try {
+      console.log('Comparing passwords:', { suppliedPassword, storedPassword });
+      
       if (!storedPassword || !storedPassword.includes('.')) {
         console.error('Invalid stored password format');
         return false;
@@ -31,14 +35,16 @@ const crypto = {
 
       const [hashedPassword, salt] = storedPassword.split(".");
       if (!hashedPassword || !salt) {
-        console.error('Missing hash or salt in stored password');
+        console.error('Missing hash or salt components');
         return false;
       }
 
       const suppliedPasswordBuf = (await scryptAsync(suppliedPassword, salt, 64)) as Buffer;
       const hashedPasswordBuf = Buffer.from(hashedPassword, "hex");
       
-      return timingSafeEqual(hashedPasswordBuf, suppliedPasswordBuf);
+      const result = timingSafeEqual(hashedPasswordBuf, suppliedPasswordBuf);
+      console.log('Password comparison result:', result);
+      return result;
     } catch (error) {
       console.error('Error comparing passwords:', error);
       return false;
@@ -128,37 +134,61 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/login", (req, res, next) => {
-    const result = insertUserSchema.safeParse(req.body);
-    if (!result.success) {
-      return res
-        .status(400)
-        .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
-    }
-
-    passport.authenticate("local", (err: any, user: Express.User, info: IVerifyOptions) => {
-      if (err) {
-        console.error('Authentication error:', err);
-        return next(err);
-      }
-      if (!user) {
-        console.log('Authentication failed:', info.message);
-        return res.status(400).send(info.message ?? "Login failed");
+  app.post("/api/login", async (req, res, next) => {
+    try {
+      console.log('Login request received:', req.body);
+      
+      const result = insertUserSchema.safeParse(req.body);
+      if (!result.success) {
+        console.error('Invalid input:', result.error.issues);
+        return res
+          .status(400)
+          .json({
+            error: "Invalid input",
+            details: result.error.issues.map(i => i.message)
+          });
       }
 
-      req.logIn(user, (err) => {
+      passport.authenticate("local", (err: any, user: Express.User, info: IVerifyOptions) => {
         if (err) {
-          console.error('Login error:', err);
-          return next(err);
+          console.error('Authentication error:', err);
+          return res.status(500).json({
+            error: "Internal server error during authentication",
+            message: err.message
+          });
         }
         
-        console.log('Login successful for user:', user.id);
-        return res.json({
-          message: "Login successful",
-          user: { id: user.id, username: user.username }
+        if (!user) {
+          console.log('Authentication failed:', info.message);
+          return res.status(401).json({
+            error: "Authentication failed",
+            message: info.message ?? "Invalid credentials"
+          });
+        }
+
+        req.logIn(user, (err) => {
+          if (err) {
+            console.error('Login error:', err);
+            return res.status(500).json({
+              error: "Internal server error during login",
+              message: err.message
+            });
+          }
+          
+          console.log('Login successful for user:', user.id);
+          return res.json({
+            message: "Login successful",
+            user: { id: user.id, username: user.username }
+          });
         });
+      })(req, res, next);
+    } catch (error) {
+      console.error('Unexpected error during login:', error);
+      return res.status(500).json({
+        error: "Internal server error",
+        message: "An unexpected error occurred during login"
       });
-    })(req, res, next);
+    }
   });
 
   app.post("/api/logout", (req, res) => {
