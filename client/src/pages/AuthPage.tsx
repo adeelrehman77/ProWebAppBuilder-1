@@ -22,7 +22,7 @@ export default function AuthPage() {
   const form = useForm({
     resolver: zodResolver(insertUserSchema),
     defaultValues: {
-      mobile: "",
+      username: "",
       password: "",
     },
   });
@@ -57,12 +57,12 @@ export default function AuthPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="mobile"
+                name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Mobile</FormLabel>
+                    <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input {...field} type="tel" placeholder="Mobile number" />
+                      <Input {...field} type="text" placeholder="Enter username" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

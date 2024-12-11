@@ -84,20 +84,20 @@ export function setupAuth(app: Express) {
 
   passport.use(
     new LocalStrategy(
-      { usernameField: 'mobile' },
-      async (mobile, password, done) => {
+      { usernameField: 'username' },
+      async (username, password, done) => {
         try {
-          console.log('Attempting login for mobile:', mobile);
+          console.log('Attempting login for username:', username);
           
           const [user] = await db
             .select()
             .from(users)
-            .where(eq(users.mobile, mobile))
+            .where(eq(users.username, username))
             .limit(1);
 
           if (!user) {
             console.log('User not found');
-            return done(null, false, { message: "Invalid mobile number." });
+            return done(null, false, { message: "Invalid username." });
           }
 
           console.log('User found, verifying password');

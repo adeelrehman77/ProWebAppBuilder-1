@@ -3,7 +3,7 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  mobile: text("mobile").unique().notNull(),
+  username: text("username").unique().notNull(),
   password: text("password").notNull(),
 });
 
