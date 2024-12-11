@@ -36,6 +36,9 @@ type NewOrder = {
     price: number;
   }>;
   totalAmount: number;
+  startDate?: string;
+  endDate?: string;
+  isRecurring: boolean;
   delivery?: {
     date: string;
     slot: "Lunch" | "Dinner";
@@ -49,6 +52,8 @@ export default function OrdersPage() {
   const [newOrder, setNewOrder] = useState<NewOrder>({
     items: [],
     totalAmount: 0,
+    isRecurring: false,
+    startDate: new Date().toISOString().split('T')[0],
   });
 
   const { data: orders, error: ordersError } = useQuery<Order[]>({
@@ -247,15 +252,30 @@ export default function OrdersPage() {
 
                   <div className="space-y-4">
                     <h3 className="font-medium">Delivery Details</h3>
+                    <div className="flex items-center gap-2 mb-4">
+                      <label className="text-sm font-medium">Recurring Order</label>
+                      <input
+                        type="checkbox"
+                        checked={newOrder.isRecurring}
+                        onChange={(e) =>
+                          setNewOrder((prev) => ({
+                            ...prev,
+                            isRecurring: e.target.checked,
+                          }))
+                        }
+                      />
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Delivery Date</label>
+                        <label className="text-sm font-medium">Start Date</label>
                         <Input
                           type="date"
                           min={new Date().toISOString().split('T')[0]}
+                          value={newOrder.startDate}
                           onChange={(e) =>
                             setNewOrder((prev) => ({
                               ...prev,
+                              startDate: e.target.value,
                               delivery: {
                                 ...prev.delivery,
                                 date: new Date(e.target.value).toISOString(),
@@ -264,6 +284,22 @@ export default function OrdersPage() {
                           }
                         />
                       </div>
+                      {newOrder.isRecurring && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">End Date</label>
+                          <Input
+                            type="date"
+                            min={newOrder.startDate}
+                            value={newOrder.endDate}
+                            onChange={(e) =>
+                              setNewOrder((prev) => ({
+                                ...prev,
+                                endDate: e.target.value,
+                              }))
+                            }
+                          />
+                        </div>
+                      )}
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Delivery Slot</label>
                         <Select

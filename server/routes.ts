@@ -176,20 +176,26 @@ export function registerRoutes(app: Express) {
   });
 
   app.post("/api/orders", async (req, res) => {
-    const result = await db
-      .transaction(async (tx) => {
+    try {
+      const { isRecurring, startDate, endDate, items, totalAmount, delivery } = req.body;
+
+      if (isRecurring && !startDate) {
+        return res.status(400).json({ error: "Start date is required for recurring orders" });
+      }
+
+      const createOrder = async (tx: any, deliveryDate: Date) => {
         // Create order
         const [order] = await tx
           .insert(orders)
           .values({
             status: "Pending",
-            totalAmount: req.body.totalAmount,
+            totalAmount,
           })
           .returning();
 
         // Create order items
-        const items = await Promise.all(
-          req.body.items.map((item: any) =>
+        const orderItems = await Promise.all(
+          items.map((item: any) =>
             tx
               .insert(orderItems)
               .values({
@@ -203,20 +209,44 @@ export function registerRoutes(app: Express) {
         );
 
         // Create delivery
-        if (req.body.delivery) {
+        if (delivery) {
           await tx
             .insert(deliveries)
             .values({
               orderId: order.id,
-              date: new Date(req.body.delivery.date),
-              slot: req.body.delivery.slot,
+              date: deliveryDate,
+              slot: delivery.slot,
               status: "Pending",
             });
         }
 
-        return { order, items: items.map((i) => i[0]) };
+        return { order, items: orderItems.map((i: any) => i[0]) };
+      };
+
+      const result = await db.transaction(async (tx) => {
+        if (!isRecurring) {
+          return createOrder(tx, new Date(startDate));
+        }
+
+        // For recurring orders, create orders for each day until end date (max 30 days)
+        const start = new Date(startDate);
+        const end = new Date(endDate || new Date(start.getTime() + 29 * 24 * 60 * 60 * 1000));
+        const orders = [];
+        
+        let currentDate = new Date(start);
+        while (currentDate <= end) {
+          orders.push(await createOrder(tx, new Date(currentDate)));
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        return orders;
       });
-    res.json(result);
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error creating order(s):', error);
+      res.status(500).json({ error: 'Failed to create order(s)' });
+    }
   });
 
   app.put("/api/orders/:id", async (req, res) => {
