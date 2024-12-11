@@ -35,6 +35,7 @@ type NewProduct = {
   categoryId: number | null;
   price: number;
   active: boolean;
+  image?: string | null;
 };
 
 export default function ProductsPage() {

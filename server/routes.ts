@@ -9,14 +9,15 @@ import path from "path";
 import express from "express";
 import fs from "fs";
 
-// Ensure uploads directory exists
-if (!fs.existsSync("./uploads")) {
-  fs.mkdirSync("./uploads");
+// Ensure uploads directory exists with absolute path
+const uploadsDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
 // Configure multer for handling file uploads
 const storage = multer.diskStorage({
-  destination: "./uploads/",
+  destination: uploadsDir,
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
