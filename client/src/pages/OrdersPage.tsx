@@ -171,6 +171,19 @@ export default function OrdersPage() {
         <div className="grid gap-6 mb-6">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Orders</h1>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" /> New Order
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create Order</DialogTitle>
+                </DialogHeader>
+                {/* Rest of the dialog content */}
+              </DialogContent>
+            </Dialog>
           </div>
           
           <div className="grid grid-cols-2 gap-6">
