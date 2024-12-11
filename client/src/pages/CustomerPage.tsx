@@ -31,16 +31,26 @@ export default function CustomerPage() {
     buildingName: "",
     flatNumber: "",
     paymentMode: "cash", // cash or bank_transfer
-    startDate: "",
-    endDate: "",
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   });
 
   const { data: products } = useQuery<Product[]>({
     queryKey: ["/api/products"],
+    queryFn: async () => {
+      const response = await fetch('/api/products');
+      if (!response.ok) throw new Error('Failed to fetch products');
+      return response.json();
+    }
   });
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
+    queryFn: async () => {
+      const response = await fetch('/api/categories');
+      if (!response.ok) throw new Error('Failed to fetch categories');
+      return response.json();
+    }
   });
 
   const handleSubscribe = async () => {
@@ -69,11 +79,11 @@ export default function CustomerPage() {
 
   return (
     <div className="container mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-8">Our Products</h1>
+      <h1 className="text-3xl font-bold mb-8">Fun Adventure Kitchen Products</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products?.map((product) => (
-          <div key={product.id} className="border rounded-lg p-4 space-y-4">
+          <div key={product.id} className="border rounded-lg p-4 space-y-4 shadow-sm hover:shadow-md transition-shadow">
             {product.image ? (
               <img
                 src={product.image}
@@ -85,14 +95,16 @@ export default function CustomerPage() {
                 No image
               </div>
             )}
-            <h3 className="text-lg font-semibold">{product.name}</h3>
-            <p className="text-sm text-muted-foreground">{categories?.find(c => c.id === product.categoryId)?.name}</p>
-            <p className="font-bold">AED {product.price}.00/{product.unit}</p>
-            <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-semibold">{product.name}</h3>
+              <p className="text-sm text-muted-foreground">{categories?.find(c => c.id === product.categoryId)?.name}</p>
+              <p className="font-bold text-lg mt-2">AED {product.price}.00/{product.unit}</p>
+            </div>
+            <div className="flex items-center gap-4">
               <Input
                 type="number"
-                placeholder="Quantity"
-                className="w-24"
+                placeholder="Qty"
+                className="w-20"
                 min="0"
                 onChange={(e) => {
                   const qty = parseInt(e.target.value);
@@ -110,6 +122,7 @@ export default function CustomerPage() {
                 }}
                 value={selectedProducts.find(p => p.id === product.id)?.quantity || ""}
               />
+              <p className="text-sm text-muted-foreground">in {product.unit}</p>
             </div>
           </div>
         ))}
