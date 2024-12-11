@@ -2,7 +2,7 @@ import { type Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { db } from "../db";
-import { categories, products, deliveries } from "@db/schema";
+import { categories, products, deliveries, orders, orderItems } from "@db/schema";
 import { eq } from "drizzle-orm";
 
 export function registerRoutes(app: Express): Server {
