@@ -18,7 +18,7 @@ const crypto = {
   },
   compare: async (suppliedPassword: string, storedPassword: string) => {
     try {
-      // Handle case where password isn't in correct format
+      console.log('Comparing passwords...');
       if (!storedPassword || !storedPassword.includes('.')) {
         console.error('Invalid password hash format');
         return false;
@@ -30,13 +30,19 @@ const crypto = {
         return false;
       }
 
-      const suppliedPasswordBuf = (await scryptAsync(
-        suppliedPassword,
-        salt,
-        64
-      )) as Buffer;
-      
+      console.log('Processing supplied password with salt...');
+      const suppliedPasswordBuf = (await scryptAsync(suppliedPassword, salt, 64)) as Buffer;
       const hashedPasswordBuf = Buffer.from(hashedPassword, "hex");
+      
+      console.log('Comparing password buffers...');
+      if (suppliedPasswordBuf.length !== hashedPasswordBuf.length) {
+        console.error('Buffer length mismatch:', {
+          supplied: suppliedPasswordBuf.length,
+          stored: hashedPasswordBuf.length
+        });
+        return false;
+      }
+
       return timingSafeEqual(hashedPasswordBuf, suppliedPasswordBuf);
     } catch (error) {
       console.error('Error comparing passwords:', error);
