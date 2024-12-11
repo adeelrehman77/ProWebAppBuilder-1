@@ -168,8 +168,54 @@ export default function OrdersPage() {
     <>
       <Sidebar />
       <div className="flex-1 p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Orders</h1>
+        <div className="grid gap-6 mb-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Orders</h1>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-6">
+            <div className="p-4 border rounded-lg">
+              <h2 className="text-lg font-semibold mb-4">Past Deliveries</h2>
+              <div className="space-y-2">
+                {orders?.filter(order => 
+                  order.deliveries?.some(d => new Date(d.date) < new Date())
+                ).map(order => (
+                  <div key={order.id} className="text-sm">
+                    {order.deliveries?.map(delivery => 
+                      new Date(delivery.date) < new Date() && (
+                        <div key={delivery.id} className="flex justify-between items-center p-2 bg-muted rounded">
+                          <span>{new Date(delivery.date).toLocaleDateString()} [{delivery.slot}]</span>
+                          <span className={delivery.status === "Completed" ? "text-green-600" : "text-yellow-600"}>
+                            {delivery.status}
+                          </span>
+                        </div>
+                      )
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4 border rounded-lg">
+              <h2 className="text-lg font-semibold mb-4">Future Deliveries</h2>
+              <div className="space-y-2">
+                {orders?.filter(order => 
+                  order.deliveries?.some(d => new Date(d.date) >= new Date())
+                ).map(order => (
+                  <div key={order.id} className="text-sm">
+                    {order.deliveries?.map(delivery => 
+                      new Date(delivery.date) >= new Date() && (
+                        <div key={delivery.id} className="flex justify-between items-center p-2 bg-muted rounded">
+                          <span>{new Date(delivery.date).toLocaleDateString()} [{delivery.slot}]</span>
+                          <span className="text-blue-600">{delivery.status}</span>
+                        </div>
+                      )
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -244,40 +290,47 @@ export default function OrdersPage() {
                   <h3 className="font-medium">Total Amount: ₹{newOrder.totalAmount}</h3>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <h3 className="font-medium">Delivery Details</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input
-                      type="date"
-                      onChange={(e) =>
-                        setNewOrder((prev) => ({
-                          ...prev,
-                          delivery: {
-                            ...prev.delivery,
-                            date: new Date(e.target.value).toISOString(),
-                          } as any,
-                        }))
-                      }
-                    />
-                    <Select
-                      onValueChange={(value) =>
-                        setNewOrder((prev) => ({
-                          ...prev,
-                          delivery: {
-                            ...prev.delivery,
-                            slot: value as "Lunch" | "Dinner",
-                          } as any,
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select slot" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Lunch">Lunch</SelectItem>
-                        <SelectItem value="Dinner">Dinner</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Delivery Date</label>
+                      <Input
+                        type="date"
+                        min={new Date().toISOString().split('T')[0]}
+                        onChange={(e) =>
+                          setNewOrder((prev) => ({
+                            ...prev,
+                            delivery: {
+                              ...prev.delivery,
+                              date: new Date(e.target.value).toISOString(),
+                            } as any,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Delivery Slot</label>
+                      <Select
+                        onValueChange={(value) =>
+                          setNewOrder((prev) => ({
+                            ...prev,
+                            delivery: {
+                              ...prev.delivery,
+                              slot: value as "Lunch" | "Dinner",
+                            } as any,
+                          }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select slot" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Lunch">Lunch (11:00 AM - 2:00 PM)</SelectItem>
+                          <SelectItem value="Dinner">Dinner (7:00 PM - 10:00 PM)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
 
