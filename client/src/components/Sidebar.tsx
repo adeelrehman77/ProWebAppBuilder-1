@@ -19,7 +19,7 @@ const menuItems = [
   { icon: Package, label: "Orders", href: "/orders" },
   { icon: Package, label: "Products", href: "/products" },
   { icon: Grid, label: "Categories", href: "/categories" },
-  { icon: Users, label: "Customers", href: "/customers" },
+  { icon: Users, label: "Subscriptions", href: "/customers" },
   { icon: CreditCard, label: "Payments", href: "/payments" },
   { icon: FileText, label: "Reports", href: "/reports" },
   { icon: Settings, label: "Settings", href: "/settings" },
