@@ -115,7 +115,7 @@ export function registerRoutes(app: Express): Server {
         return acc;
       }, []);
 
-      res.json(ordersWithDeliveries);
+      res.json(ordersWithDetails);
     } catch (error) {
       console.error('Error fetching orders:', error);
       res.status(500).json({ error: 'Failed to fetch orders' });

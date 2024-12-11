@@ -51,13 +51,33 @@ export default function OrdersPage() {
     totalAmount: 0,
   });
 
-  const { data: orders } = useQuery<Order[]>({
+  const { data: orders, error: ordersError } = useQuery<Order[]>({
     queryKey: ["/api/orders"],
+    onError: (error) => {
+      console.error('Error fetching orders:', error);
+      toast({
+        variant: "destructive",
+        title: "Failed to fetch orders",
+        description: error.message
+      });
+    }
   });
 
-  const { data: products } = useQuery<Product[]>({
+  const { data: products, error: productsError } = useQuery<Product[]>({
     queryKey: ["/api/products"],
+    onError: (error) => {
+      console.error('Error fetching products:', error);
+      toast({
+        variant: "destructive",
+        title: "Failed to fetch products",
+        description: error.message
+      });
+    }
   });
+
+  // Log the data to help with debugging
+  console.log('Orders:', orders);
+  console.log('Products:', products);
 
   const createMutation = useMutation({
     mutationFn: async (order: NewOrder) => {
