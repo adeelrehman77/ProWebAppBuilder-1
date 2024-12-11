@@ -31,6 +31,7 @@ function Router() {
     <div className="flex min-h-screen">
       <Switch>
         <Route path="/" component={DashboardPage} />
+        <Route path="/orders" component={OrdersPage} />
         <Route path="/products" component={ProductsPage} />
         <Route path="/categories" component={CategoriesPage} />
         <Route>404 Page Not Found</Route>

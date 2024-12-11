@@ -16,6 +16,7 @@ import { useUser } from "@/hooks/use-user";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+  { icon: Package, label: "Orders", href: "/orders" },
   { icon: Package, label: "Products", href: "/products" },
   { icon: Grid, label: "Categories", href: "/categories" },
   { icon: Users, label: "Customers", href: "/customers" },
