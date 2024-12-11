@@ -31,8 +31,8 @@ export default function CustomerPage() {
     buildingName: "",
     flatNumber: "",
     paymentMode: "cash", // cash or bank_transfer
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    startDate: new Date(),
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
   });
 
   const { data: products } = useQuery<Product[]>({
@@ -55,19 +55,24 @@ export default function CustomerPage() {
 
   const handleSubscribe = async () => {
     try {
+      const formData = {
+        ...subscriptionForm,
+        startDate: new Date(subscriptionForm.startDate),
+        endDate: new Date(subscriptionForm.endDate),
+        products: selectedProducts,
+      };
+
       const response = await fetch("/api/subscriptions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...subscriptionForm,
-          products: selectedProducts,
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) throw new Error(await response.text());
 
       toast({ title: "Subscription request sent successfully" });
       setOpen(false);
+      setSelectedProducts([]);
     } catch (error: any) {
       toast({
         variant: "destructive",
