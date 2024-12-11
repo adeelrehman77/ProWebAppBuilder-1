@@ -24,7 +24,7 @@ function Router() {
   return (
     <div className="flex min-h-screen">
       <Switch>
-        <Route path="/customer" component={CustomerPage} />
+        <Route path="/customers" component={CustomerPage} />
         {isLoading ? (
           <Route>
             <div className="flex items-center justify-center min-h-screen">
