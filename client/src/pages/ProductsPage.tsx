@@ -66,14 +66,23 @@ export default function ProductsPage() {
       if (!response.ok) throw new Error('Upload failed');
 
       const { url } = await response.json();
+      console.log('Uploaded image URL:', url);
+      
       if (editingProduct) {
-        setEditingProduct({ ...editingProduct, image: url });
+        const updatedProduct = { ...editingProduct, image: url };
+        setEditingProduct(updatedProduct);
+        // Update the product immediately with the new image
+        updateMutation.mutate({
+          id: editingProduct.id,
+          image: url,
+        });
       } else {
-        setNewProduct({ ...newProduct, image: url });
+        setNewProduct((prev) => ({ ...prev, image: url }));
       }
       
       toast({ title: "Image uploaded successfully" });
     } catch (error: any) {
+      console.error('Image upload error:', error);
       toast({
         variant: "destructive",
         title: "Failed to upload image",
@@ -136,6 +145,29 @@ export default function ProductsPage() {
       setOpen(false);
       setEditingProduct(null);
       toast({ title: "Product updated successfully" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/products/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      setOpen(false);
+      setEditingProduct(null);
+      toast({ title: "Product deleted successfully" });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Error deleting product",
+        description: error.message,
+      });
     },
   });
 
@@ -241,13 +273,12 @@ export default function ProductsPage() {
                       </Button>
                       <Button
                         variant="destructive"
-                        onClick={() =>
-                          updateMutation.mutate({
-                            id: editingProduct.id,
-                            active: false,
-                          })
-                        }
-                        disabled={updateMutation.isPending}
+                        onClick={() => {
+                          if (confirm('Are you sure you want to delete this product?')) {
+                            deleteMutation.mutate(editingProduct.id);
+                          }
+                        }}
+                        disabled={deleteMutation.isPending}
                       >
                         Delete
                       </Button>

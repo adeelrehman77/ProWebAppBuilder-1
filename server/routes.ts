@@ -1,4 +1,4 @@
-import { type Express, type Server } from "express";
+import { type Express } from "express";
 import { createServer } from "http";
 import { setupAuth } from "./auth";
 import { db } from "../db";
@@ -38,11 +38,11 @@ const upload = multer({
   },
 });
 
-export function registerRoutes(app: Express): Server {
+export function registerRoutes(app: Express) {
   setupAuth(app);
 
   // Serve uploaded files
-  app.use("/uploads", express.static("uploads"));
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
   // File upload endpoint
   app.post("/api/upload", upload.single("image"), (req, res) => {
@@ -51,6 +51,7 @@ export function registerRoutes(app: Express): Server {
     }
     
     const url = `/uploads/${req.file.filename}`;
+    console.log('File uploaded successfully:', url);
     res.json({ url });
   });
 
@@ -74,6 +75,19 @@ export function registerRoutes(app: Express): Server {
     res.json(result[0]);
   });
 
+  app.delete("/api/categories/:id", async (req, res) => {
+    try {
+      const result = await db
+        .delete(categories)
+        .where(eq(categories.id, parseInt(req.params.id)))
+        .returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      res.status(500).json({ error: 'Failed to delete category' });
+    }
+  });
+
   // Products
   app.get("/api/products", async (req, res) => {
     const result = await db.select().from(products);
@@ -92,6 +106,19 @@ export function registerRoutes(app: Express): Server {
       .where(eq(products.id, parseInt(req.params.id)))
       .returning();
     res.json(result[0]);
+  });
+
+  app.delete("/api/products/:id", async (req, res) => {
+    try {
+      const result = await db
+        .delete(products)
+        .where(eq(products.id, parseInt(req.params.id)))
+        .returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      res.status(500).json({ error: 'Failed to delete product' });
+    }
   });
 
   // Orders
@@ -121,14 +148,13 @@ export function registerRoutes(app: Express): Server {
         .leftJoin(deliveries, eq(deliveries.orderId, orders.id))
         .orderBy(orders.createdAt);
 
-      // Group items and deliveries by order
-      const ordersWithDetails = result.reduce((acc: any[], curr) => {
+      const ordersWithDetails = result.reduce((acc, curr) => {
         const existingOrder = acc.find(o => o.id === curr.id);
         if (existingOrder) {
-          if (curr.items?.id && !existingOrder.items.find((i: any) => i.id === curr.items.id)) {
+          if (curr.items?.id && !existingOrder.items.find(i => i.id === curr.items.id)) {
             existingOrder.items.push(curr.items);
           }
-          if (curr.deliveries?.id && !existingOrder.deliveries.find((d: any) => d.id === curr.deliveries.id)) {
+          if (curr.deliveries?.id && !existingOrder.deliveries.find(d => d.id === curr.deliveries.id)) {
             existingOrder.deliveries.push(curr.deliveries);
           }
         } else {
@@ -155,7 +181,6 @@ export function registerRoutes(app: Express): Server {
         const [order] = await tx
           .insert(orders)
           .values({
-            userId: req.user?.id,
             status: "Pending",
             totalAmount: req.body.totalAmount,
           })

@@ -45,14 +45,23 @@ export default function CategoriesPage() {
       if (!response.ok) throw new Error('Upload failed');
 
       const { url } = await response.json();
+      console.log('Uploaded image URL:', url);
+      
       if (editingCategory) {
-        setEditingCategory({ ...editingCategory, image: url });
+        const updatedCategory = { ...editingCategory, image: url };
+        setEditingCategory(updatedCategory);
+        // Update the category immediately with the new image
+        updateMutation.mutate({
+          id: editingCategory.id,
+          image: url,
+        });
       } else {
-        setNewCategory({ ...newCategory, image: url });
+        setNewCategory((prev) => ({ ...prev, image: url }));
       }
       
       toast({ title: "Image uploaded successfully" });
     } catch (error: any) {
+      console.error('Image upload error:', error);
       toast({
         variant: "destructive",
         title: "Failed to upload image",
@@ -104,6 +113,29 @@ export default function CategoriesPage() {
       setOpen(false);
       setEditingCategory(null);
       toast({ title: "Category updated successfully" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/categories/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+      setOpen(false);
+      setEditingCategory(null);
+      toast({ title: "Category deleted successfully" });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Error deleting category",
+        description: error.message,
+      });
     },
   });
 
@@ -169,13 +201,12 @@ export default function CategoriesPage() {
                     </Button>
                     <Button
                       variant="destructive"
-                      onClick={() =>
-                        updateMutation.mutate({
-                          id: editingCategory.id,
-                          active: false,
-                        })
-                      }
-                      disabled={updateMutation.isPending}
+                      onClick={() => {
+                        if (confirm('Are you sure you want to delete this category?')) {
+                          deleteMutation.mutate(editingCategory.id);
+                        }
+                      }}
+                      disabled={deleteMutation.isPending}
                     >
                       Delete
                     </Button>
