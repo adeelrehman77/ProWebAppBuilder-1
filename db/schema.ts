@@ -25,8 +25,26 @@ export const products = pgTable("products", {
   active: boolean("active").default(true),
 });
 
+export const orders = pgTable("orders", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  status: text("status").notNull(), // Pending/Confirmed/Delivered/Cancelled
+  totalAmount: integer("total_amount").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const orderItems = pgTable("order_items", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").references(() => orders.id),
+  productId: integer("product_id").references(() => products.id),
+  quantity: integer("quantity").notNull(),
+  price: integer("price").notNull(),
+});
+
 export const deliveries = pgTable("deliveries", {
   id: serial("id").primaryKey(), 
+  orderId: integer("order_id").references(() => orders.id),
   date: timestamp("date").notNull(),
   slot: text("slot").notNull(), // Lunch/Dinner
   status: text("status").notNull(), // Pending/Completed
@@ -42,6 +60,12 @@ export const selectCategorySchema = createSelectSchema(categories);
 export const insertProductSchema = createInsertSchema(products);
 export const selectProductSchema = createSelectSchema(products);
 
+export const insertOrderSchema = createInsertSchema(orders);
+export const selectOrderSchema = createSelectSchema(orders);
+
+export const insertOrderItemSchema = createInsertSchema(orderItems);
+export const selectOrderItemSchema = createSelectSchema(orderItems);
+
 export const insertDeliverySchema = createInsertSchema(deliveries);
 export const selectDeliverySchema = createSelectSchema(deliveries);
 
@@ -54,6 +78,12 @@ export type InsertCategory = typeof categories.$inferInsert;
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = typeof products.$inferInsert;
+
+export type Order = typeof orders.$inferSelect;
+export type InsertOrder = typeof orders.$inferInsert;
+
+export type OrderItem = typeof orderItems.$inferSelect;
+export type InsertOrderItem = typeof orderItems.$inferInsert;
 
 export type Delivery = typeof deliveries.$inferSelect;
 export type InsertDelivery = typeof deliveries.$inferInsert;
