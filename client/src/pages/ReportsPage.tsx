@@ -1,5 +1,5 @@
 import { Sidebar } from "@/components/Sidebar";
-
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,15 +12,31 @@ export default function ReportsPage() {
     queryFn: async () => {
       const response = await fetch('/api/stats');
       if (!response.ok) throw new Error('Failed to fetch stats');
-      const data = await response.json();
-      console.log('Stats data:', data); // Debug log
-      return {
-        ...data,
-        upcomingDeliveries: data.upcomingDeliveries || [],
-        categories: data.categories || []
-      };
+      return response.json();
     }
   });
+
+  const { data: orders } = useQuery({
+    queryKey: ["/api/orders"],
+    queryFn: async () => {
+      const response = await fetch('/api/orders');
+      if (!response.ok) throw new Error('Failed to fetch orders');
+      return response.json();
+    }
+  });
+
+  const [selectedMealType, setSelectedMealType] = useState<string>("all");
+
+  const upcomingDeliveries = orders?.filter((order: any) => {
+    const deliveryDate = new Date(order.deliveryDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const matchesMealType = selectedMealType === "all" || 
+                           order.mealType?.toLowerCase() === selectedMealType;
+    
+    return deliveryDate >= today && matchesMealType;
+  }) || [];
 
   return (
     <>
@@ -96,38 +112,42 @@ export default function ReportsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Upcoming Deliveries by Category</CardTitle>
+              <CardTitle>Upcoming Deliveries</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center gap-4 mb-4">
-                  <Label htmlFor="category-filter">Filter by Category:</Label>
+                  <Label htmlFor="meal-type">Meal Type:</Label>
                   <select
-                    id="category-filter"
+                    id="meal-type"
+                    value={selectedMealType}
+                    onChange={(e) => setSelectedMealType(e.target.value)}
                     className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <option value="">All Categories</option>
-                    {stats?.categories?.map((category: any) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
+                    <option value="all">All Meals</option>
+                    <option value="lunch">Lunch</option>
+                    <option value="dinner">Dinner</option>
                   </select>
                 </div>
                 <div className="space-y-2">
-                  {stats?.upcomingDeliveries?.map((delivery: any) => (
-                    <div key={delivery.id} className="flex justify-between items-center p-2 border rounded">
+                  {upcomingDeliveries.map((order: any) => (
+                    <div key={order.id} className="flex justify-between items-center p-2 border rounded">
                       <div>
-                        <span className="font-medium">{delivery.customerName}</span>
+                        <span className="font-medium">{order.customerName}</span>
                         <span className="text-sm text-muted-foreground ml-2">
-                          ({delivery.category})
+                          ({order.mealType})
                         </span>
                       </div>
                       <div className="text-sm">
-                        {new Date(delivery.date).toLocaleDateString()} [{delivery.slot}]
+                        {new Date(order.deliveryDate).toLocaleDateString()} [{order.deliverySlot}]
                       </div>
                     </div>
                   ))}
+                  {upcomingDeliveries.length === 0 && (
+                    <div className="text-center text-muted-foreground py-4">
+                      No upcoming deliveries found
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
