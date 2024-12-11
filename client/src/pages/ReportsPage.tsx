@@ -12,7 +12,13 @@ export default function ReportsPage() {
     queryFn: async () => {
       const response = await fetch('/api/stats');
       if (!response.ok) throw new Error('Failed to fetch stats');
-      return response.json();
+      const data = await response.json();
+      console.log('Stats data:', data); // Debug log
+      return {
+        ...data,
+        upcomingDeliveries: data.upcomingDeliveries || [],
+        categories: data.categories || []
+      };
     }
   });
 

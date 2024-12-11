@@ -93,7 +93,8 @@ export default function CustomerPage() {
         <img
           src="/logo.png"
           alt="Fun Adventure Kitchen"
-          className="mx-auto h-32 mb-4 dark:invert"
+          className="mx-auto w-64 mb-4"
+          style={{ maxWidth: '100%', height: 'auto' }}
         />
         <h1 className="text-3xl font-bold">Fun Adventure Kitchen Products</h1>
       </div>
