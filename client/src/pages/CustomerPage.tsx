@@ -89,7 +89,14 @@ export default function CustomerPage() {
 
   return (
     <div className="container mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-8">Fun Adventure Kitchen Products</h1>
+      <div className="text-center mb-8">
+        <img
+          src="/logo.png"
+          alt="Fun Adventure Kitchen"
+          className="mx-auto h-24 mb-4"
+        />
+        <h1 className="text-3xl font-bold">Fun Adventure Kitchen Products</h1>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products?.map((product) => (

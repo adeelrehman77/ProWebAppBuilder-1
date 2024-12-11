@@ -89,6 +89,45 @@ export default function ReportsPage() {
 
           <Card>
             <CardHeader>
+              <CardTitle>Upcoming Deliveries by Category</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 mb-4">
+                  <Label htmlFor="category-filter">Filter by Category:</Label>
+                  <select
+                    id="category-filter"
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">All Categories</option>
+                    {stats?.categories?.map((category: any) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  {stats?.upcomingDeliveries?.map((delivery: any) => (
+                    <div key={delivery.id} className="flex justify-between items-center p-2 border rounded">
+                      <div>
+                        <span className="font-medium">{delivery.customerName}</span>
+                        <span className="text-sm text-muted-foreground ml-2">
+                          ({delivery.category})
+                        </span>
+                      </div>
+                      <div className="text-sm">
+                        {new Date(delivery.date).toLocaleDateString()} [{delivery.slot}]
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Revenue by Category</CardTitle>
             </CardHeader>
             <CardContent>
