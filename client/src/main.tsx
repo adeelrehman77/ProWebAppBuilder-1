@@ -10,6 +10,7 @@ import DashboardPage from "./pages/DashboardPage";
 import ProductsPage from "./pages/ProductsPage";
 import CategoriesPage from "./pages/CategoriesPage";
 import OrdersPage from "./pages/OrdersPage";
+import CustomerPage from "./pages/CustomerPage";
 import { Loader2 } from "lucide-react";
 import { useUser } from "./hooks/use-user";
 
@@ -28,10 +29,12 @@ function Router() {
     return <AuthPage />;
   }
 
+  // Special route for customer page
   if (window.location.pathname === '/customer') {
     return <CustomerPage />;
   }
 
+  // Admin routes
   return (
     <div className="flex min-h-screen">
       <Switch>
@@ -39,6 +42,7 @@ function Router() {
         <Route path="/orders" component={OrdersPage} />
         <Route path="/products" component={ProductsPage} />
         <Route path="/categories" component={CategoriesPage} />
+        <Route path="/customer" component={CustomerPage} />
         <Route>404 Page Not Found</Route>
       </Switch>
     </div>
