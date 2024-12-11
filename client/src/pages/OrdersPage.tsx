@@ -202,7 +202,7 @@ export default function OrdersPage() {
                             value={product.id.toString()}
                             disabled={!product.active}
                           >
-                            {product.name} - ₹{product.price}
+                            {product.name} - AED {product.price}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -238,8 +238,8 @@ export default function OrdersPage() {
                               }}
                               className="w-20"
                             />
-                            <span>× ₹{item.price}</span>
-                            <span>= ₹{item.price * item.quantity}</span>
+                            <span>× AED {item.price}</span>
+                            <span>= AED {item.price * item.quantity}</span>
                           </div>
                         );
                       })}
@@ -247,7 +247,7 @@ export default function OrdersPage() {
                   </div>
 
                   <div>
-                    <h3 className="font-medium">Total Amount: ₹{newOrder.totalAmount}</h3>
+                    <h3 className="font-medium">Total Amount: AED {newOrder.totalAmount}</h3>
                   </div>
 
                   <div className="space-y-4">
@@ -329,9 +329,7 @@ export default function OrdersPage() {
                     onClick={() => createMutation.mutate(newOrder)}
                     disabled={
                       createMutation.isPending ||
-                      newOrder.items.length === 0 ||
-                      !newOrder.delivery?.date ||
-                      !newOrder.delivery?.slot
+                      newOrder.items.length === 0
                     }
                   >
                     Create Order
@@ -425,8 +423,8 @@ export default function OrdersPage() {
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell>₹{order.totalAmount}</TableCell>
-                <TableCell>₹{order.paidAmount}</TableCell>
+                <TableCell>AED {order.totalAmount}</TableCell>
+                <TableCell>AED {order.paidAmount}</TableCell>
                 <TableCell>
                   <Select
                     value={order.paymentStatus}
@@ -526,7 +524,7 @@ export default function OrdersPage() {
                                   }
                                 />
                                 <span className="text-sm text-muted-foreground">
-                                  of ₹{order.totalAmount}
+                                  of AED {order.totalAmount}
                                 </span>
                               </div>
                             </div>
