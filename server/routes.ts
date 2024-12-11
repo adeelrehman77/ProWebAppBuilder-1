@@ -145,7 +145,7 @@ export function registerRoutes(app: Express): Server {
             .insert(deliveries)
             .values({
               orderId: order.id,
-              date: req.body.delivery.date,
+              date: new Date(req.body.delivery.date),
               slot: req.body.delivery.slot,
               status: "Pending",
             });

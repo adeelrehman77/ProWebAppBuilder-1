@@ -211,7 +211,7 @@ export default function OrdersPage() {
                           ...prev,
                           delivery: {
                             ...prev.delivery,
-                            date: e.target.value,
+                            date: new Date(e.target.value).toISOString(),
                           } as any,
                         }))
                       }
