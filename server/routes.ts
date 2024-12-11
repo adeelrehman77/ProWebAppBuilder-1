@@ -77,6 +77,12 @@ export function registerRoutes(app: Express): Server {
           status: orders.status,
           totalAmount: orders.totalAmount,
           createdAt: orders.createdAt,
+          items: {
+            id: orderItems.id,
+            productId: orderItems.productId,
+            quantity: orderItems.quantity,
+            price: orderItems.price,
+          },
           deliveries: {
             id: deliveries.id,
             date: deliveries.date,
@@ -85,19 +91,24 @@ export function registerRoutes(app: Express): Server {
           }
         })
         .from(orders)
+        .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
         .leftJoin(deliveries, eq(deliveries.orderId, orders.id))
         .orderBy(orders.createdAt);
 
-      // Group deliveries by order
-      const ordersWithDeliveries = result.reduce((acc: any[], curr) => {
+      // Group items and deliveries by order
+      const ordersWithDetails = result.reduce((acc: any[], curr) => {
         const existingOrder = acc.find(o => o.id === curr.id);
         if (existingOrder) {
-          if (curr.deliveries.id) {
+          if (curr.items.id && !existingOrder.items.find((i: any) => i.id === curr.items.id)) {
+            existingOrder.items.push(curr.items);
+          }
+          if (curr.deliveries.id && !existingOrder.deliveries.find((d: any) => d.id === curr.deliveries.id)) {
             existingOrder.deliveries.push(curr.deliveries);
           }
         } else {
           acc.push({
             ...curr,
+            items: curr.items.id ? [curr.items] : [],
             deliveries: curr.deliveries.id ? [curr.deliveries] : []
           });
         }

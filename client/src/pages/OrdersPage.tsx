@@ -302,9 +302,77 @@ export default function OrdersPage() {
                   ))}
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="sm">
-                    View Details
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        View Details
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Order Details</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="font-medium mb-2">Order Items</h3>
+                          <div className="space-y-2">
+                            {order.items?.map((item) => {
+                              const product = products?.find((p) => p.id === item.productId);
+                              return (
+                                <div key={item.id} className="flex items-center justify-between">
+                                  <span>{product?.name}</span>
+                                  <span className="text-muted-foreground">
+                                    {item.quantity} × ₹{item.price} = ₹{item.quantity * item.price}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <div className="mt-4 pt-4 border-t">
+                            <div className="flex justify-between">
+                              <span className="font-medium">Total Amount:</span>
+                              <span>₹{order.totalAmount}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <h3 className="font-medium mb-2">Delivery Details</h3>
+                          {order.deliveries?.map((delivery) => (
+                            <div key={delivery.id} className="space-y-1">
+                              <div className="flex justify-between">
+                                <span>Date:</span>
+                                <span>{new Date(delivery.date).toLocaleDateString()}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Slot:</span>
+                                <span>{delivery.slot}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Status:</span>
+                                <Select
+                                  value={delivery.status}
+                                  onValueChange={(value) =>
+                                    updateDeliveryMutation.mutate({
+                                      id: delivery.id,
+                                      status: value,
+                                    })
+                                  }
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Pending">Pending</SelectItem>
+                                    <SelectItem value="Completed">Completed</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </TableCell>
               </TableRow>
             ))}
