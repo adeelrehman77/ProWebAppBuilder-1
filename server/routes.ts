@@ -1,12 +1,58 @@
-import { type Express } from "express";
-import { createServer, type Server } from "http";
+import { type Express, type Server } from "express";
+import { createServer } from "http";
 import { setupAuth } from "./auth";
 import { db } from "../db";
 import { categories, products, deliveries, orders, orderItems } from "@db/schema";
 import { eq } from "drizzle-orm";
+import multer from "multer";
+import path from "path";
+import express from "express";
+import fs from "fs";
+
+// Ensure uploads directory exists
+if (!fs.existsSync("./uploads")) {
+  fs.mkdirSync("./uploads");
+}
+
+// Configure multer for handling file uploads
+const storage = multer.diskStorage({
+  destination: "./uploads/",
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Invalid file type. Only JPEG, PNG and GIF are allowed."));
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
+});
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
+
+  // Serve uploaded files
+  app.use("/uploads", express.static("uploads"));
+
+  // File upload endpoint
+  app.post("/api/upload", upload.single("image"), (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+    
+    const url = `/uploads/${req.file.filename}`;
+    res.json({ url });
+  });
 
   // Categories
   app.get("/api/categories", async (req, res) => {
@@ -48,26 +94,6 @@ export function registerRoutes(app: Express): Server {
     res.json(result[0]);
   });
 
-  // Deliveries
-  app.get("/api/deliveries", async (req, res) => {
-    const result = await db.select().from(deliveries);
-    res.json(result);
-  });
-
-  app.post("/api/deliveries", async (req, res) => {
-    const result = await db.insert(deliveries).values(req.body).returning();
-    res.json(result[0]);
-  });
-
-  app.put("/api/deliveries/:id", async (req, res) => {
-    const result = await db
-      .update(deliveries)
-      .set(req.body)
-      .where(eq(deliveries.id, parseInt(req.params.id)))
-      .returning();
-    res.json(result[0]);
-  });
-
   // Orders
   app.get("/api/orders", async (req, res) => {
     try {
@@ -99,17 +125,17 @@ export function registerRoutes(app: Express): Server {
       const ordersWithDetails = result.reduce((acc: any[], curr) => {
         const existingOrder = acc.find(o => o.id === curr.id);
         if (existingOrder) {
-          if (curr.items.id && !existingOrder.items.find((i: any) => i.id === curr.items.id)) {
+          if (curr.items?.id && !existingOrder.items.find((i: any) => i.id === curr.items.id)) {
             existingOrder.items.push(curr.items);
           }
-          if (curr.deliveries.id && !existingOrder.deliveries.find((d: any) => d.id === curr.deliveries.id)) {
+          if (curr.deliveries?.id && !existingOrder.deliveries.find((d: any) => d.id === curr.deliveries.id)) {
             existingOrder.deliveries.push(curr.deliveries);
           }
         } else {
           acc.push({
             ...curr,
-            items: curr.items.id ? [curr.items] : [],
-            deliveries: curr.deliveries.id ? [curr.deliveries] : []
+            items: curr.items?.id ? [curr.items] : [],
+            deliveries: curr.deliveries?.id ? [curr.deliveries] : []
           });
         }
         return acc;

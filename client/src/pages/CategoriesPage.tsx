@@ -26,7 +26,40 @@ export default function CategoriesPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<(Category & { isNew?: boolean }) | null>(null);
   const [newCategory, setNewCategory] = useState({ name: "", image: "", active: true });
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+
+      const { url } = await response.json();
+      if (editingCategory) {
+        setEditingCategory({ ...editingCategory, image: url });
+      } else {
+        setNewCategory({ ...newCategory, image: url });
+      }
+      
+      toast({ title: "Image uploaded successfully" });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Failed to upload image",
+        description: error.message,
+      });
+    }
+  };
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -86,17 +119,36 @@ export default function CategoriesPage() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add Category</DialogTitle>
+                <DialogTitle>{editingCategory ? 'Edit Category' : 'Add Category'}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium">Name</label>
                   <Input
-                    value={newCategory.name}
+                    value={editingCategory?.name || newCategory.name}
                     onChange={(e) =>
-                      setNewCategory({ ...newCategory, name: e.target.value })
+                      editingCategory
+                        ? setEditingCategory({ ...editingCategory, name: e.target.value })
+                        : setNewCategory({ ...newCategory, name: e.target.value })
                     }
                   />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Image</label>
+                  <div className="flex items-center gap-4">
+                    {(editingCategory?.image || newCategory.image) && (
+                      <img
+                        src={editingCategory?.image || newCategory.image}
+                        alt="Category"
+                        className="h-20 w-20 object-cover rounded"
+                      />
+                    )}
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                    />
+                  </div>
                 </div>
                 <Button
                   onClick={() => createMutation.mutate(newCategory)}
@@ -151,7 +203,14 @@ export default function CategoriesPage() {
                   </Button>
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="sm">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditingCategory(category);
+                      setOpen(true);
+                    }}
+                  >
                     Edit
                   </Button>
                 </TableCell>

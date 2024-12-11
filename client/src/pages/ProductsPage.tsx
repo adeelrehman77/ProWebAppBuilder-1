@@ -41,6 +41,7 @@ export default function ProductsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<(Product & { isNew?: boolean }) | null>(null);
   const [newProduct, setNewProduct] = useState<NewProduct>({
     name: "",
     brand: "Fun Adventure Kitchen",
@@ -48,6 +49,38 @@ export default function ProductsPage() {
     price: 15,
     active: true,
   });
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+
+      const { url } = await response.json();
+      if (editingProduct) {
+        setEditingProduct({ ...editingProduct, image: url });
+      } else {
+        setNewProduct({ ...newProduct, image: url });
+      }
+      
+      toast({ title: "Image uploaded successfully" });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Failed to upload image",
+        description: error.message,
+      });
+    }
+  };
 
   const { data: products } = useQuery<Product[]>({
     queryKey: ["/api/products"],
@@ -122,17 +155,36 @@ export default function ProductsPage() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add Product</DialogTitle>
+                  <DialogTitle>{editingProduct ? 'Edit Product' : 'Add Product'}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium">Name</label>
                     <Input
-                      value={newProduct.name}
+                      value={editingProduct?.name || newProduct.name}
                       onChange={(e) =>
-                        setNewProduct({ ...newProduct, name: e.target.value })
+                        editingProduct
+                          ? setEditingProduct({ ...editingProduct, name: e.target.value })
+                          : setNewProduct({ ...newProduct, name: e.target.value })
                       }
                     />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Image</label>
+                    <div className="flex items-center gap-4">
+                      {(editingProduct?.image || newProduct.image) && (
+                        <img
+                          src={editingProduct?.image || newProduct.image}
+                          alt="Product"
+                          className="h-20 w-20 object-cover rounded"
+                        />
+                      )}
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium">Category</label>
@@ -229,7 +281,14 @@ export default function ProductsPage() {
                   </Button>
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="sm">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditingProduct(product);
+                      setOpen(true);
+                    }}
+                  >
                     Edit
                   </Button>
                 </TableCell>
