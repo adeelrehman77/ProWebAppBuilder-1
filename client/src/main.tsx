@@ -9,6 +9,7 @@ import AuthPage from "./pages/AuthPage";
 import DashboardPage from "./pages/DashboardPage";
 import ProductsPage from "./pages/ProductsPage";
 import CategoriesPage from "./pages/CategoriesPage";
+import OrdersPage from "./pages/OrdersPage";
 import { Loader2 } from "lucide-react";
 import { useUser } from "./hooks/use-user";
 
