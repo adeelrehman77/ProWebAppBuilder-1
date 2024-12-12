@@ -114,12 +114,17 @@ export default function SubscriptionsPage() {
         body: JSON.stringify(subscriptionData),
       });
 
-      const responseData = await response.text();
-      console.log('Server response:', responseData);
+      let responseData;
+      try {
+        responseData = await response.json();
+        console.log('Server response:', responseData);
+      } catch (e) {
+        console.error('Error parsing response:', e);
+        throw new Error('Invalid server response');
+      }
 
       if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error);
+        throw new Error(responseData.error || 'Failed to create subscription');
       }
 
       toast({ title: "Subscription created successfully" });
@@ -137,10 +142,18 @@ export default function SubscriptionsPage() {
       });
     } catch (error) {
       console.error('Error creating subscription:', error);
+      let errorMessage = "Failed to create subscription";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'error' in error) {
+        errorMessage = String((error as {error: string}).error);
+      }
+
       toast({
         variant: "destructive",
         title: "Error creating subscription",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description: errorMessage,
       });
     }
   };
