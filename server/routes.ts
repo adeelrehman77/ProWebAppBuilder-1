@@ -3,7 +3,7 @@ import { createServer } from "http";
 import { setupAuth } from "./auth";
 import { db } from "../db";
 import { categories, products, deliveries, orders, orderItems, subscriptions, subscriptionItems, routes, drivers, zones } from "@db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
 import express from "express";

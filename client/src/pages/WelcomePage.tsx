@@ -22,7 +22,7 @@ export default function WelcomePage() {
         <img
           src="/uploads/Oodles of Noodles Celebration.png"
           alt="Fun Adventure Kitchen Background"
-          className="w-full h-full object-cover object-center scale-40"
+          className="w-full h-full object-cover object-center scale-20"
         />
         <div className="absolute inset-0 bg-black/30"></div>
       </div>
