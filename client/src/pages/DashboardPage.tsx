@@ -6,8 +6,17 @@ export default function DashboardPage() {
     queryKey: ["/api/deliveries"],
   });
 
-  const pastDeliveries = deliveries?.filter(d => new Date(d.date) < new Date());
+  const { data: subscriptions } = useQuery<any[]>({
+    queryKey: ["/api/subscriptions"],
+    queryFn: async () => {
+      const response = await fetch('/api/subscriptions');
+      if (!response.ok) throw new Error('Failed to fetch subscriptions');
+      return response.json();
+    }
+  });
+
   const futureDeliveries = deliveries?.filter(d => new Date(d.date) >= new Date());
+  const activeSubscriptions = subscriptions?.filter(s => s.status === 'approved');
 
   return (
     <div className="p-8">
@@ -57,16 +66,15 @@ export default function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Past Deliveries</CardTitle>
+              <CardTitle>Active Subscriptions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {pastDeliveries?.map((delivery) => (
-                  <div key={delivery.id} className="text-sm text-muted-foreground">
-                    {new Date(delivery.date).toLocaleDateString()} [{delivery.slot}]
-                  </div>
-                ))}
+              <div className="text-2xl font-bold">
+                {activeSubscriptions?.length || 0}
               </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Total number of active subscription plans
+              </p>
             </CardContent>
           </Card>
 
