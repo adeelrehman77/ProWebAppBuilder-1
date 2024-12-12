@@ -677,6 +677,28 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Customers management
+  app.get("/api/customers", async (req, res) => {
+    try {
+      // For now, returning mock data
+      const mockCustomers = [
+        {
+          id: 1,
+          name: "Akash Kiran",
+          phone: "91860 6862798",
+          balance: 0.00,
+          isActive: true,
+          route: "Bur Dubai",
+          registeredOn: "2024-12-12T17:45:00.000Z"
+        }
+      ];
+      res.json(mockCustomers);
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+      res.status(500).json({ error: 'Failed to fetch customers' });
+    }
+  });
+
   // Settings management
   app.get("/api/settings", async (req, res) => {
     try {
