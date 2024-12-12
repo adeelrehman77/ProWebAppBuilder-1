@@ -1,5 +1,4 @@
 import { SiFacebook, SiInstagram } from "react-icons/si";
-
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -18,18 +17,34 @@ export default function WelcomePage() {
 
   return (
     <div className="flex flex-col min-h-screen relative">
-      {/* Background Image with Blur */}
-      <div 
-        className="fixed inset-0 z-0"
-        style={{
-          backgroundImage: 'url("/uploads/Oodles of Noodles Celebration.png")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'blur(4px) brightness(0.75)'
-        }}
-      />
+      {/* Background with high contrast text content */}
+      <div className="fixed inset-0 z-0 bg-emerald-900">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mt-20 text-white">
+            <h1 className="text-5xl font-bold mb-6">Fun Adventure Kitchen</h1>
+            <div className="space-y-4 text-xl">
+              <p className="font-semibold">Homely Tiffin Service</p>
+              <p className="text-emerald-100">
+                North Indian cuisine is known for its vibrant flavors and diverse dishes.
+                Signature items include butter chicken, biryani, and dal makhani, typically served
+                with naan or roti.
+              </p>
+              <p className="text-emerald-100">
+                Ingredients such as ghee and paneer enrich the taste, while
+                cooking methods like slow-cooking and tandoor baking contribute to its unique
+                culinary experience.
+              </p>
+              <div className="mt-8 space-y-4">
+                <p className="font-semibold text-emerald-300">Contact Us:</p>
+                <p className="text-emerald-100">Phone: 0551686600</p>
+                <p className="text-emerald-100">Landline: 04-4484610</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      {/* Main content */}
+      {/* Main content with transparent image overlay */}
       <main className="flex-1 relative z-10">
         <div className="container mx-auto px-4 py-8">
           {/* Subscribe Now Button */}
@@ -42,28 +57,17 @@ export default function WelcomePage() {
             </Button>
           </div>
 
-          <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            {/* Content area with semi-transparent background */}
-            <div className="bg-white/90 p-8 rounded-lg shadow-xl">
-              <h1 className="text-4xl font-bold text-emerald-900 mb-6">Fun Adventure Kitchen</h1>
-              <div className="space-y-4 text-lg text-gray-700">
-                <p className="font-semibold">Homely Tiffin Service</p>
-                <p>
-                  North Indian cuisine is known for its vibrant flavors and diverse dishes.
-                  Signature items include butter chicken, biryani, and dal makhani, typically served
-                  with naan or roti.
-                </p>
-                <p>
-                  Ingredients such as ghee and paneer enrich the taste, while
-                  cooking methods like slow-cooking and tandoor baking contribute to its unique
-                  culinary experience.
-                </p>
-              </div>
-              <div className="mt-8 space-y-4">
-                <p className="font-semibold text-emerald-800">Contact Us:</p>
-                <p>Phone: 0551686600</p>
-                <p>Landline: 04-4484610</p>
-              </div>
+          <div className="mt-20 flex justify-center items-center">
+            {/* Semi-transparent image overlay */}
+            <div className="relative w-full max-w-4xl">
+              <img
+                src="/uploads/Oodles of Noodles Celebration.png"
+                alt="Fun Adventure Kitchen"
+                className="w-full h-auto"
+                style={{
+                  opacity: '0.65'
+                }}
+              />
             </div>
           </div>
         </div>
