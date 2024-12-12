@@ -4,7 +4,15 @@ import { type Express } from "express";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import { createHash } from "crypto";
-import { users, insertUserSchema } from "@db/schema";
+import { users } from "@db/schema";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type LoginUser = z.infer<typeof loginSchema>;
 import { db } from "../db";
 import { eq } from "drizzle-orm";
 
@@ -32,7 +40,9 @@ export function setupAuth(app: Express) {
       checkPeriod: 86400000 // prune expired entries every 24h
     }),
     cookie: { 
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Set to false for development
+      httpOnly: true,
+      sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
   }));
@@ -87,13 +97,15 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    const result = insertUserSchema.safeParse(req.body);
+    const result = loginSchema.safeParse(req.body);
     if (!result.success) {
       return res.status(400).json({
         error: "Validation failed",
         message: result.error.issues.map(i => i.message).join(", ")
       });
     }
+
+    const validatedData = result.data;
 
     passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) {
