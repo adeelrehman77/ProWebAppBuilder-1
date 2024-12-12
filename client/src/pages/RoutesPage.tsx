@@ -168,9 +168,7 @@ export default function RoutesPage() {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar />
-      <div className="flex-1 p-8 overflow-auto">
+    <div className="h-screen bg-gray-100 p-8 overflow-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Routes</h1>
@@ -212,6 +210,5 @@ export default function RoutesPage() {
           />
         </div>
       </div>
-    </div>
   );
 }

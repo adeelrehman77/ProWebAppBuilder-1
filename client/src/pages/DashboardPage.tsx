@@ -1,4 +1,3 @@
-import { Sidebar } from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 
@@ -11,9 +10,7 @@ export default function DashboardPage() {
   const futureDeliveries = deliveries?.filter(d => new Date(d.date) >= new Date());
 
   return (
-    <>
-      <Sidebar />
-      <div className="flex-1 p-8">
+    <div className="p-8">
         <div className="grid gap-4 md:grid-cols-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -89,6 +86,5 @@ export default function DashboardPage() {
           </Card>
         </div>
       </div>
-    </>
   );
 }

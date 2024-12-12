@@ -1,5 +1,3 @@
-import { Sidebar } from "@/components/Sidebar";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -20,9 +18,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <>
-      <Sidebar />
-      <div className="flex-1 p-8">
+    <div className="p-8">
         <div className="grid gap-6">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Settings</h1>
@@ -149,6 +145,5 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-    </>
   );
 }
