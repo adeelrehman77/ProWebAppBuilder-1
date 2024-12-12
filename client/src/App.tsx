@@ -30,7 +30,12 @@ function App() {
     );
   }
 
-  // Show welcome page if not logged in and not on auth page
+  // Show subscription page if that's where they're trying to go
+  if (!user && location === "/subscriptions") {
+    return <SubscriptionsPage />;
+  }
+
+  // Show welcome page if not logged in and not on auth or subscriptions page
   if (!user && location !== "/auth") {
     return <WelcomePage />;
   }

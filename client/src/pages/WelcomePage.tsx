@@ -27,10 +27,7 @@ export default function WelcomePage() {
               Welcome to Fun Adventure Kitchen
             </h1>
             <Button 
-              onClick={() => {
-                console.log('Navigating to /subscriptions');
-                setLocation("/subscriptions");
-              }}
+              onClick={() => setLocation("/subscriptions")}
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-full shadow-lg transform hover:scale-105 transition-all"
             >
               Subscribe Now
