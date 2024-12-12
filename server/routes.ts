@@ -463,7 +463,11 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/drivers", async (req, res) => {
     try {
-      const result = await db.insert(drivers).values(req.body).returning();
+      const result = await db.insert(drivers).values({
+        ...req.body,
+        status: req.body.status || 'available',
+        currentLocation: req.body.currentLocation || null
+      }).returning();
       res.json(result[0]);
     } catch (error) {
       console.error('Error creating driver:', error);
@@ -482,6 +486,25 @@ export function registerRoutes(app: Express) {
     } catch (error) {
       console.error('Error updating driver:', error);
       res.status(500).json({ error: 'Failed to update driver' });
+    }
+  });
+
+  app.get("/api/drivers/:id", async (req, res) => {
+    try {
+      const result = await db
+        .select()
+        .from(drivers)
+        .where(eq(drivers.id, parseInt(req.params.id)))
+        .limit(1);
+      
+      if (result.length === 0) {
+        return res.status(404).json({ error: 'Driver not found' });
+      }
+      
+      res.json(result[0]);
+    } catch (error) {
+      console.error('Error fetching driver:', error);
+      res.status(500).json({ error: 'Failed to fetch driver' });
     }
   });
 

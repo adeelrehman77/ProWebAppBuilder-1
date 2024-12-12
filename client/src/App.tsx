@@ -13,7 +13,7 @@ import CustomerPage from "@/pages/CustomerPage";
 import PaymentsPage from "@/pages/PaymentsPage";
 import ReportsPage from "@/pages/ReportsPage";
 import SettingsPage from "@/pages/SettingsPage";
-import DriversPage from "@/pages/DriversPage";
+import DriversPage from "./pages/DriversPage";
 
 function App() {
   const { user, isLoading } = useUser();
