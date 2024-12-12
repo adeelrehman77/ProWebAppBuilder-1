@@ -48,6 +48,7 @@ export default function SubscriptionsPage() {
     startDate: "",
     endDate: "",
     products: [] as { id: number; quantity: number }[],
+    totalAmount: 0,
   });
 
   const { data: products = [], isLoading: isLoadingProducts } = useQuery({
@@ -72,9 +73,16 @@ export default function SubscriptionsPage() {
     }
 
     try {
-      // Create subscription with items
-      // Ensure dates are valid before creating the subscription
-      // Convert dates to UTC midnight to avoid timezone issues
+      if (formData.products.length === 0) {
+        toast({
+          variant: "destructive",
+          title: "Error creating subscription",
+          description: "Please select at least one product",
+        });
+        return;
+      }
+
+      // Validate dates
       const startDate = new Date(formData.startDate);
       startDate.setUTCHours(0, 0, 0, 0);
       const endDate = new Date(formData.endDate);
@@ -100,15 +108,19 @@ export default function SubscriptionsPage() {
           paymentMode: formData.paymentMode,
           startDate: startDate.toISOString(),
           endDate: endDate.toISOString(),
+          totalAmount: formData.totalAmount,
           status: 'pending'
         },
-        items: formData.products.map(product => ({
-          productId: product.id,
-          quantity: product.quantity
-        }))
+        items: formData.products.map(product => {
+          const productDetails = products.find(p => p.id === product.id);
+          return {
+            productId: product.id,
+            quantity: product.quantity,
+            price: productDetails?.price || 0
+          };
+        })
       };
 
-      // Log the subscription data for debugging
       console.log('Sending subscription data:', subscriptionData);
       
       const response = await fetch("/api/subscriptions", {
@@ -119,11 +131,19 @@ export default function SubscriptionsPage() {
 
       let responseData;
       try {
-        responseData = await response.json();
-        console.log('Server response:', responseData);
+        const responseText = await response.text();
+        console.log('Raw server response:', responseText);
+        
+        try {
+          responseData = JSON.parse(responseText);
+          console.log('Parsed server response:', responseData);
+        } catch (e) {
+          console.error('Failed to parse response as JSON:', e);
+          throw new Error(responseText || 'Failed to create subscription');
+        }
       } catch (e) {
-        console.error('Error parsing response:', e);
-        throw new Error('Invalid server response');
+        console.error('Error handling response:', e);
+        throw new Error('Failed to process server response');
       }
 
       if (!response.ok) {
@@ -165,6 +185,9 @@ export default function SubscriptionsPage() {
     setFormData(prev => {
       const updatedProducts = [...prev.products];
       const existingIndex = updatedProducts.findIndex(p => p.id === productId);
+      const product = products.find(p => p.id === productId);
+      
+      if (!product) return prev;
       
       if (quantity <= 0) {
         if (existingIndex !== -1) {
@@ -178,7 +201,13 @@ export default function SubscriptionsPage() {
         }
       }
       
-      return { ...prev, products: updatedProducts };
+      // Calculate total amount
+      const totalAmount = updatedProducts.reduce((sum, item) => {
+        const product = products.find(p => p.id === item.id);
+        return sum + (product?.price || 0) * item.quantity;
+      }, 0);
+      
+      return { ...prev, products: updatedProducts, totalAmount };
     });
   };
 
@@ -289,7 +318,12 @@ export default function SubscriptionsPage() {
               </div>
 
               <div className="space-y-4">
-                <Label>Select Products</Label>
+                <div className="flex justify-between items-center mb-4">
+                  <Label>Select Products</Label>
+                  <div className="text-lg font-bold">
+                    Total Amount: د.إ {formData.totalAmount.toFixed(2)}
+                  </div>
+                </div>
                 <Table>
                   <TableHeader>
                     <TableRow>
