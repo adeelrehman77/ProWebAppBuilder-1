@@ -28,30 +28,62 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit2, MapPin, Trash2 } from "lucide-react";
-import type { Route } from "@db/schema";
 import { useForm } from "react-hook-form";
+import { Plus, Edit2, MapPin } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertRouteSchema } from "@db/schema";
+import * as z from "zod";
 
-type RouteFormData = {
+interface Route {
+  id: number;
   name: string;
-  description: string;
+  description: string | null;
   areas: string;
   estimatedTime: number;
   maxDeliveries: number;
   startLocation: string;
   endLocation: string;
-};
+}
+
+interface Delivery {
+  id: number;
+  orderId: number;
+  routeId: number | null;
+  driverId: number | null;
+  date: string;
+  slot: string;
+  status: string;
+  route?: { id: number; name: string } | null;
+  driver?: { id: number; name: string } | null;
+}
+
+interface Driver {
+  id: number;
+  name: string;
+  status: string;
+}
+
+const routeFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  areas: z.string().min(1, "Areas are required"),
+  estimatedTime: z.number().min(1, "Estimated time is required"),
+  maxDeliveries: z.number().min(1, "Max deliveries is required"),
+  startLocation: z.string().min(1, "Start location is required"),
+  endLocation: z.string().min(1, "End location is required"),
+});
+
+type RouteFormData = z.infer<typeof routeFormSchema>;
 
 export default function RoutesPage() {
-  const { toast } = useToast();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
+  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
+  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const form = useForm<RouteFormData>({
-    resolver: zodResolver(insertRouteSchema),
+    resolver: zodResolver(routeFormSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -64,6 +96,16 @@ export default function RoutesPage() {
   });
 
   const { data: routes, isLoading } = useQuery({
+    queryKey: ['/api/routes'],
+    queryFn: async () => {
+      const response = await fetch('/api/routes');
+      if (!response.ok) {
+        throw new Error('Failed to fetch routes');
+      }
+      return response.json() as Promise<Route[]>;
+    },
+  });
+
   const { data: deliveries } = useQuery({
     queryKey: ['/api/deliveries'],
     queryFn: async () => {
@@ -71,7 +113,7 @@ export default function RoutesPage() {
       if (!response.ok) {
         throw new Error('Failed to fetch deliveries');
       }
-      return response.json();
+      return response.json() as Promise<Delivery[]>;
     },
   });
 
@@ -82,51 +124,9 @@ export default function RoutesPage() {
       if (!response.ok) {
         throw new Error('Failed to fetch drivers');
       }
-      return response.json();
-    },
-  });
-
-  const assignDeliveryMutation = useMutation({
-    mutationFn: async ({ deliveryId, routeId, driverId }) => {
-      const response = await fetch(`/api/deliveries/${deliveryId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          routeId,
-          driverId,
-          status: 'Assigned',
-        }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to assign delivery');
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
-      setIsAssignDialogOpen(false);
-      toast({
-        title: "Success",
-        description: "Delivery assigned successfully",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
-    },
-  });
-    queryKey: ['/api/routes'],
-    queryFn: async () => {
-      const response = await fetch('/api/routes');
-      if (!response.ok) {
-        throw new Error('Failed to fetch routes');
-      }
-      return response.json() as Promise<Route[]>;
+      return (response.json() as Promise<Driver[]>).then(drivers => 
+        drivers.filter(d => d.status === 'available')
+      );
     },
   });
 
@@ -195,6 +195,42 @@ export default function RoutesPage() {
     },
   });
 
+  const assignDeliveryMutation = useMutation({
+    mutationFn: async ({ deliveryId, routeId, driverId }: { deliveryId: number; routeId: number; driverId: number }) => {
+      const response = await fetch(`/api/deliveries/${deliveryId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          routeId,
+          driverId,
+          status: 'Assigned',
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to assign delivery');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
+      setIsAssignDialogOpen(false);
+      setSelectedDelivery(null);
+      toast({
+        title: "Success",
+        description: "Delivery assigned successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    },
+  });
+
   const onSubmit = (data: RouteFormData) => {
     if (editingRoute) {
       updateRouteMutation.mutate({ ...data, id: editingRoute.id });
@@ -203,7 +239,6 @@ export default function RoutesPage() {
     }
   };
 
-  // Reset form when dialog closes
   const handleDialogChange = (open: boolean) => {
     setIsAddDialogOpen(open);
     if (!open) {
@@ -212,7 +247,6 @@ export default function RoutesPage() {
     }
   };
 
-  // Set form values when editing
   const handleEdit = (route: Route) => {
     setEditingRoute(route);
     form.reset({
@@ -225,6 +259,11 @@ export default function RoutesPage() {
       endLocation: route.endLocation,
     });
     setIsAddDialogOpen(true);
+  };
+
+  const handleAssignDelivery = (delivery: Delivery) => {
+    setSelectedDelivery(delivery);
+    setIsAssignDialogOpen(true);
   };
 
   if (isLoading) {
@@ -320,6 +359,70 @@ export default function RoutesPage() {
                 </Button>
               </DialogFooter>
             </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Assignment Dialog */}
+        <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Assign Delivery</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Select Route</label>
+                <Select onValueChange={(value) => {
+                  if (selectedDelivery) {
+                    assignDeliveryMutation.mutate({
+                      deliveryId: selectedDelivery.id,
+                      routeId: parseInt(value),
+                      driverId: selectedDelivery.driverId || 0,
+                    });
+                  }
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a route" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Available Routes</SelectLabel>
+                      {routes?.map((route) => (
+                        <SelectItem key={route.id} value={route.id.toString()}>
+                          {route.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Select Driver</label>
+                <Select onValueChange={(value) => {
+                  if (selectedDelivery) {
+                    assignDeliveryMutation.mutate({
+                      deliveryId: selectedDelivery.id,
+                      routeId: selectedDelivery.routeId || 0,
+                      driverId: parseInt(value),
+                    });
+                  }
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a driver" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Available Drivers</SelectLabel>
+                      {availableDrivers?.map((driver) => (
+                        <SelectItem key={driver.id} value={driver.id.toString()}>
+                          {driver.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
