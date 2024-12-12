@@ -23,18 +23,13 @@ const menuItems = [
   { icon: Package, label: "Products", href: "/products" },
   { icon: Grid, label: "Categories", href: "/categories" },
   { icon: Users, label: "Subscriptions", href: "/customers" },
-  { 
-    icon: Truck, 
-    label: "Deliveries", 
-    href: "/deliveries",
-    submenu: [
-      { icon: Map, label: "Routes", href: "/deliveries/routes" },
-      { icon: UserCog, label: "Drivers", href: "/deliveries/drivers" }
-    ]
-  },
+  // Delivery Management
+  { icon: Truck, label: "Deliveries", href: "/deliveries" },
+  { icon: Map, label: "Routes", href: "/routes" },
+  { icon: UserCog, label: "Drivers", href: "/drivers" },
   { icon: CreditCard, label: "Payments", href: "/payments" },
   { icon: FileText, label: "Reports", href: "/reports" },
-  { icon: Settings, label: "Settings", href: "/settings" }
+  { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
 export function Sidebar() {
@@ -53,48 +48,19 @@ export function Sidebar() {
             const Icon = item.icon;
             return (
               <li key={item.href}>
-                {item.submenu ? (
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-3 px-3 py-2 text-white">
-                      <Icon className="h-5 w-5" />
-                      {item.label}
-                    </div>
-                    <div className="pl-6 space-y-1">
-                      {item.submenu.map((subItem) => {
-                        const SubIcon = subItem.icon;
-                        return (
-                          <Link key={subItem.href} href={subItem.href}>
-                            <div
-                              className={cn(
-                                "flex items-center gap-3 px-3 py-2 rounded-md transition-colors cursor-pointer",
-                                location === subItem.href
-                                  ? "bg-teal-800 text-white"
-                                  : "hover:bg-teal-600"
-                              )}
-                            >
-                              <SubIcon className="h-4 w-4" />
-                              {subItem.label}
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <Link href={item.href}>
-                    <div
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-md transition-colors cursor-pointer",
-                        location === item.href
-                          ? "bg-teal-800 text-white"
-                          : "hover:bg-teal-600"
-                      )}
-                    >
-                      <Icon className="h-5 w-5" />
-                      {item.label}
-                    </div>
-                  </Link>
-                )}
+                <Link href={item.href}>
+                  <a
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                      location === item.href
+                        ? "bg-teal-800 text-white"
+                        : "hover:bg-teal-600"
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {item.label}
+                  </a>
+                </Link>
               </li>
             );
           })}

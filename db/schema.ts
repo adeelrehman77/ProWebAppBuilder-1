@@ -90,7 +90,7 @@ export const deliveries = pgTable("deliveries", {
   slot: text("slot").notNull(), // Lunch/Dinner
   status: text("status").notNull(), // Pending/Assigned/InProgress/Completed/Failed
   notes: text("notes"),
-  assignedAt: timestamp("assigned_at").defaultNow(),
+  assignedAt: timestamp("assigned_at"),
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
 });
