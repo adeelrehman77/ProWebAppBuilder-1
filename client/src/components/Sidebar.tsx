@@ -36,6 +36,10 @@ export function Sidebar() {
   const [location] = useLocation();
   const { logout } = useUser();
 
+  const linkClasses = "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-white";
+  const activeClasses = "bg-emerald-800 font-medium";
+  const inactiveClasses = "hover:bg-emerald-800/50";
+
   return (
     <div className="flex flex-col h-screen w-64 bg-emerald-900">
       <div className="p-4 border-b border-emerald-800">
@@ -53,10 +57,8 @@ export function Sidebar() {
                   <Link href={item.href}>
                     <button
                       className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-white",
-                        location === item.href
-                          ? "bg-emerald-800 font-medium"
-                          : "hover:bg-emerald-800/50"
+                        linkClasses,
+                        location === item.href ? activeClasses : inactiveClasses
                       )}
                     >
                       <Icon className="h-5 w-5" />
@@ -81,10 +83,8 @@ export function Sidebar() {
                     <Link href={item.href}>
                       <button
                         className={cn(
-                          "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-white",
-                          location === item.href
-                            ? "bg-emerald-800 font-medium"
-                            : "hover:bg-emerald-800/50"
+                          linkClasses,
+                          location === item.href ? activeClasses : inactiveClasses
                         )}
                       >
                         <Icon className="h-5 w-5" />
@@ -106,10 +106,8 @@ export function Sidebar() {
                   <Link href={item.href}>
                     <button
                       className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-white",
-                        location === item.href
-                          ? "bg-emerald-800 font-medium"
-                          : "hover:bg-emerald-800/50"
+                        linkClasses,
+                        location === item.href ? activeClasses : inactiveClasses
                       )}
                     >
                       <Icon className="h-5 w-5" />
