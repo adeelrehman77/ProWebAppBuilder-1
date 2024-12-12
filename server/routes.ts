@@ -567,20 +567,26 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Add endpoint to update delivery status
+  // Add endpoint to update delivery status with enhanced tracking
   app.put("/api/deliveries/:id/status", async (req, res) => {
     try {
-      const { status } = req.body;
+      const { status, notes, currentLocation } = req.body;
       const deliveryId = parseInt(req.params.id);
       
       const statusToTimestamp = {
         'Assigned': 'assignedAt',
-        'InProgress': 'startedAt',
-        'Completed': 'completedAt'
+        'PickedUp': 'startedAt',
+        'InTransit': 'inTransitAt',
+        'NearDestination': 'nearDestinationAt',
+        'Delivered': 'completedAt',
+        'Failed': 'failedAt',
+        'Cancelled': 'cancelledAt'
       };
 
-      const updateData = {
+      const updateData: any = {
         status,
+        notes: notes || null,
+        ...(currentLocation && { currentLocation }),
         ...(statusToTimestamp[status] && { [statusToTimestamp[status]]: new Date() })
       };
 
@@ -590,12 +596,25 @@ export function registerRoutes(app: Express) {
         .where(eq(deliveries.id, deliveryId))
         .returning();
 
-      // Update driver status if delivery status changes
+      // Update driver status and location if delivery status changes
       if (result[0].driverId) {
-        const driverStatus = status === 'Completed' ? 'available' : 'on_delivery';
+        const driverStatusMap = {
+          'Assigned': 'assigned',
+          'PickedUp': 'on_delivery',
+          'InTransit': 'on_delivery',
+          'NearDestination': 'on_delivery',
+          'Delivered': 'available',
+          'Failed': 'available',
+          'Cancelled': 'available'
+        };
+
         await db
           .update(drivers)
-          .set({ status: driverStatus })
+          .set({ 
+            status: driverStatusMap[status] || 'available',
+            currentLocation: currentLocation || null,
+            lastUpdated: new Date()
+          })
           .where(eq(drivers.id, result[0].driverId));
       }
 
@@ -603,6 +622,58 @@ export function registerRoutes(app: Express) {
     } catch (error) {
       console.error('Error updating delivery status:', error);
       res.status(500).json({ error: 'Failed to update delivery status' });
+    }
+  });
+
+  // Add endpoint to assign driver to delivery
+  app.put("/api/deliveries/:id/assign", async (req, res) => {
+    try {
+      const { driverId } = req.body;
+      const deliveryId = parseInt(req.params.id);
+
+      // Check if driver exists and is available
+      const driver = await db
+        .select()
+        .from(drivers)
+        .where(eq(drivers.id, driverId))
+        .limit(1);
+
+      if (!driver.length) {
+        return res.status(404).json({ error: 'Driver not found' });
+      }
+
+      if (driver[0].status !== 'available') {
+        return res.status(400).json({ error: 'Driver is not available' });
+      }
+
+      const result = await db.transaction(async (tx) => {
+        // Update delivery with driver assignment
+        const [updatedDelivery] = await tx
+          .update(deliveries)
+          .set({
+            driverId,
+            status: 'Assigned',
+            assignedAt: new Date()
+          })
+          .where(eq(deliveries.id, deliveryId))
+          .returning();
+
+        // Update driver status
+        await tx
+          .update(drivers)
+          .set({ 
+            status: 'assigned',
+            lastUpdated: new Date()
+          })
+          .where(eq(drivers.id, driverId));
+
+        return updatedDelivery;
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error assigning driver:', error);
+      res.status(500).json({ error: 'Failed to assign driver' });
     }
   });
 
