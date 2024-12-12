@@ -72,14 +72,30 @@ export default function SubscriptionsPage() {
     }
 
     try {
+      // Create subscription with items
+      const subscriptionData = {
+        subscription: {
+          name: formData.name,
+          contactNumber: formData.contactNumber,
+          address: formData.address,
+          location: formData.location,
+          buildingName: formData.buildingName,
+          flatNumber: formData.flatNumber,
+          paymentMode: formData.paymentMode,
+          startDate: new Date(formData.startDate),
+          endDate: new Date(formData.endDate),
+          status: 'pending'
+        },
+        items: formData.products.map(product => ({
+          productId: product.id,
+          quantity: product.quantity
+        }))
+      };
+
       const response = await fetch("/api/subscriptions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          startDate: new Date(formData.startDate).toISOString(),
-          endDate: new Date(formData.endDate).toISOString(),
-        }),
+        body: JSON.stringify(subscriptionData),
       });
 
       if (!response.ok) {
