@@ -2,6 +2,7 @@ import { SiFacebook, SiInstagram } from "react-icons/si";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function WelcomePage() {
   const [_, setLocation] = useLocation();
@@ -16,35 +17,50 @@ export default function WelcomePage() {
   });
 
   return (
-    <div className="flex flex-col min-h-screen relative">
-      {/* Background with high contrast text content */}
-      <div className="fixed inset-0 z-0">
-        <img
-          src="/uploads/Oodles of Noodles Celebration.png"
-          alt="Fun Adventure Kitchen Background"
-          className="w-full h-full object-cover object-center scale-20"
-        />
-        <div className="absolute inset-0 bg-black/30"></div>
-      </div>
-
-      {/* Main content with welcome text */}
-      <main className="flex-1 relative z-10">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-emerald-50 to-emerald-100">
+      {/* Main content */}
+      <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
-          {/* Subscribe Now Button */}
-          <div className="absolute top-4 left-4">
+          {/* Header Section */}
+          <div className="flex justify-between items-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold text-emerald-800">
+              Welcome to Fun Adventure Kitchen
+            </h1>
             <Button 
-              onClick={() => setLocation("/auth")}
+              onClick={() => setLocation("/customers")}
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-full shadow-lg transform hover:scale-105 transition-all"
             >
               Subscribe Now
             </Button>
           </div>
 
-          {/* Welcome Text */}
-          <div className="text-center mt-8">
-            <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
-              Welcome to Fun Adventure Kitchen
-            </h1>
+          {/* Promotional Boxes */}
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            <Card className="bg-white shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-2xl text-emerald-700">
+                  {settings.promo_box_1_title || "Special Offer"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  {settings.promo_box_1_content || "Check out our latest promotions and special offers!"}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-2xl text-emerald-700">
+                  {settings.promo_box_2_title || "Today's Special"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  {settings.promo_box_2_content || "Discover our chef's special dishes for today!"}
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>
