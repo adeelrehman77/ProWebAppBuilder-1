@@ -4,7 +4,7 @@ import { Truck, Map } from "lucide-react";
 
 export default function DeliveriesPage() {
   return (
-    <div className="p-8">
+    <div className="flex-1 p-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Delivery Management</h1>
       </div>

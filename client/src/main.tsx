@@ -5,7 +5,8 @@ import "./index.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
-import { Sidebar } from "@/components/Sidebar";
+// Component imports
+import Sidebar from "@/components/Sidebar";
 import { Loader2 } from "lucide-react";
 import { useUser } from "./hooks/use-user";
 
@@ -43,6 +44,7 @@ function Router() {
       <Sidebar />
       <main className="flex-1 min-h-screen">
         <Switch>
+          {/* Specific routes first */}
           <Route path="/deliveries/routes">
             <RoutesPage />
           </Route>
@@ -73,9 +75,11 @@ function Router() {
           <Route path="/payments">
             <PaymentsPage />
           </Route>
+          {/* Home route */}
           <Route path="/">
             <DashboardPage />
           </Route>
+          {/* 404 catch-all route */}
           <Route>
             <div className="p-8">
               <h1 className="text-2xl font-bold">404 - Page Not Found</h1>

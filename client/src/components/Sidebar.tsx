@@ -44,7 +44,7 @@ const menuItems: MenuItem[] = [
   { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
-export function Sidebar() {
+export default function Sidebar() {
   const [location] = useLocation();
   const { logout } = useUser();
 
