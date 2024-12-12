@@ -434,13 +434,28 @@ export function registerRoutes(app: Express) {
         .leftJoin(orders, eq(deliveries.orderId, orders.id))
         .orderBy(deliveries.date);
       
-      const formattedResult = result.map(delivery => ({
-        ...delivery,
-        date: delivery.date ? new Date(delivery.date).toISOString() : null,
-        assignedAt: delivery.assignedAt ? new Date(delivery.assignedAt).toISOString() : null,
-        startedAt: delivery.startedAt ? new Date(delivery.startedAt).toISOString() : null,
-        completedAt: delivery.completedAt ? new Date(delivery.completedAt).toISOString() : null
-      }));
+      const formattedResult = result.map(delivery => {
+        const formattedDelivery = {
+          ...delivery,
+          date: delivery.date ? new Date(delivery.date).toISOString() : null,
+          assignedAt: delivery.assignedAt ? new Date(delivery.assignedAt).toISOString() : null,
+          startedAt: delivery.startedAt ? new Date(delivery.startedAt).toISOString() : null,
+          completedAt: delivery.completedAt ? new Date(delivery.completedAt).toISOString() : null,
+        };
+        
+        // Clean up null relations
+        if (!formattedDelivery.route?.id) {
+          formattedDelivery.route = null;
+        }
+        if (!formattedDelivery.driver?.id) {
+          formattedDelivery.driver = null;
+        }
+        if (!formattedDelivery.order?.id) {
+          formattedDelivery.order = null;
+        }
+        
+        return formattedDelivery;
+      });
 
       res.json(formattedResult);
     } catch (error) {
