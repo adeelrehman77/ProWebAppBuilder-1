@@ -40,15 +40,15 @@ export function Sidebar() {
   const activeClasses = "bg-emerald-800 text-white";
 
   return (
-    <div className="flex flex-col h-screen w-64 bg-emerald-900">
+    <div className="flex flex-col min-h-screen w-64 bg-emerald-900 overflow-hidden">
       <div className="p-4 border-b border-emerald-800">
         <h1 className="text-xl font-bold text-white">Fun Adventure Kitchen</h1>
       </div>
       
-      <nav className="flex-1 p-4">
-        <div className="space-y-6">
+      <nav className="flex-1 overflow-y-auto">
+        <div className="p-4 space-y-6">
           {/* Main Navigation */}
-          <ul className="space-y-1">
+          <ul className="space-y-2">
             {menuItems.slice(0, 5).map((item) => {
               const Icon = item.icon;
               return (
@@ -71,10 +71,10 @@ export function Sidebar() {
 
           {/* Delivery Management Section */}
           <div>
-            <h2 className="mb-2 px-3 text-sm font-semibold text-white">
+            <h2 className="mb-3 px-3 text-sm font-semibold text-white">
               Delivery Management
             </h2>
-            <ul className="space-y-1">
+            <ul className="space-y-2">
               {menuItems.slice(5, 9).map((item) => {
                 const Icon = item.icon;
                 return (
@@ -97,7 +97,7 @@ export function Sidebar() {
           </div>
 
           {/* Settings & Reports */}
-          <ul className="space-y-1">
+          <ul className="space-y-2 mt-6">
             {menuItems.slice(9).map((item) => {
               const Icon = item.icon;
               return (
