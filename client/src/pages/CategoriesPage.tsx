@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Sidebar } from "@/components/Sidebar";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -140,9 +139,7 @@ export default function CategoriesPage() {
   });
 
   return (
-    <>
-      <Sidebar />
-      <div className="flex-1 p-8">
+    <div className="p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Categories</h1>
           <Dialog open={open} onOpenChange={setOpen}>
@@ -282,6 +279,5 @@ export default function CategoriesPage() {
           </TableBody>
         </Table>
       </div>
-    </>
   );
 }
