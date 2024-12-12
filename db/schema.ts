@@ -237,3 +237,23 @@ export type InsertSubscription = typeof subscriptions.$inferInsert;
 
 export type SubscriptionItem = typeof subscriptionItems.$inferSelect;
 export type InsertSubscriptionItem = typeof subscriptionItems.$inferInsert;
+
+// Customer management
+export const customers = pgTable("customers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  phone: text("phone").notNull(),
+  email: text("email"),
+  balance: integer("balance").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  route: text("route"),
+  registeredOn: timestamp("registered_on").defaultNow(),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+});
+
+export type Customer = typeof customers.$inferSelect;
+export type InsertCustomer = typeof customers.$inferInsert;
+
+export const customersRelations = relations(customers, ({ many }) => ({
+  subscriptions: many(subscriptions)
+}));

@@ -2,7 +2,7 @@ import { type Express } from "express";
 import { createServer } from "http";
 import { setupAuth } from "./auth";
 import { db } from "../db";
-import { categories, products, deliveries, orders, orderItems, subscriptions, subscriptionItems, routes, drivers, zones } from "@db/schema";
+import { categories, products, deliveries, orders, orderItems, subscriptions, subscriptionItems, routes, drivers, zones, customers } from "@db/schema";
 import { eq, sql } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
@@ -42,10 +42,9 @@ const upload = multer({
 export function registerRoutes(app: Express) {
   setupAuth(app);
 
-  // Serve uploaded files
-  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
-
   // File upload endpoint
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+  
   app.post("/api/upload", upload.single("image"), (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
@@ -309,19 +308,40 @@ export function registerRoutes(app: Express) {
     try {
       const { subscription: subscriptionData, items } = req.body;
 
+      if (!subscriptionData || !items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ error: 'Invalid subscription data' });
+      }
+
       const result = await db.transaction(async (tx) => {
-        // Create customer record first
-        const [customer] = await tx
-          .insert(customers)
-          .values({
-            name: subscriptionData.name,
-            phone: subscriptionData.contactNumber,
-            balance: 0.00,
-            isActive: true,
-            route: subscriptionData.location,
-            registeredOn: new Date().toISOString()
-          })
-          .returning();
+        // Find or create customer
+        let customer;
+        const existingCustomers = await tx
+          .select()
+          .from(customers)
+          .where(eq(customers.phone, subscriptionData.contactNumber));
+
+        if (existingCustomers.length > 0) {
+          customer = existingCustomers[0];
+          // Update customer if needed
+          await tx
+            .update(customers)
+            .set({
+              name: subscriptionData.name,
+              route: subscriptionData.location,
+            })
+            .where(eq(customers.id, customer.id));
+        } else {
+          const [newCustomer] = await tx
+            .insert(customers)
+            .values({
+              name: subscriptionData.name,
+              phone: subscriptionData.contactNumber,
+              isActive: true,
+              route: subscriptionData.location,
+            })
+            .returning();
+          customer = newCustomer;
+        }
 
         // Format dates properly for database
         const startDate = new Date(subscriptionData.startDate);
@@ -345,61 +365,65 @@ export function registerRoutes(app: Express) {
           .returning();
 
         // Create subscription items
-        await Promise.all(
-          items.map(async (item: { productId: number; quantity: number; price: number }) => {
-            await tx
-              .insert(subscriptionItems)
-              .values({
-                subscriptionId: subscription.id,
-                productId: item.productId,
-                quantity: item.quantity,
-              });
-          })
-        );
+        const subscriptionItemsPromises = items.map(async (item: { productId: number; quantity: number; price: number }) => {
+          return tx
+            .insert(subscriptionItems)
+            .values({
+              subscriptionId: subscription.id,
+              productId: item.productId,
+              quantity: item.quantity,
+            })
+            .returning();
+        });
 
-        // Create initial order for the subscription
+        await Promise.all(subscriptionItemsPromises);
+
+        // Create initial order
         const [order] = await tx
           .insert(orders)
           .values({
             status: "Pending",
-            totalAmount: subscriptionData.totalAmount,
+            totalAmount: subscriptionData.totalAmount || 0,
             paymentStatus: "Pending",
             paymentMethod: subscriptionData.paymentMode,
           })
           .returning();
 
         // Create order items
-        await Promise.all(
-          items.map(async (item: { productId: number; quantity: number; price: number }) => {
-            await tx
-              .insert(orderItems)
-              .values({
-                orderId: order.id,
-                productId: item.productId,
-                quantity: item.quantity,
-                price: item.price,
-              });
-          })
-        );
+        const orderItemsPromises = items.map(async (item: { productId: number; quantity: number; price: number }) => {
+          return tx
+            .insert(orderItems)
+            .values({
+              orderId: order.id,
+              productId: item.productId,
+              quantity: item.quantity,
+              price: item.price,
+            })
+            .returning();
+        });
+
+        await Promise.all(orderItemsPromises);
 
         // Create initial delivery for tomorrow
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         tomorrow.setUTCHours(0, 0, 0, 0);
 
-        await tx
+        const [delivery] = await tx
           .insert(deliveries)
           .values({
             orderId: order.id,
             date: tomorrow,
             slot: "lunch", // Default to lunch slot
             status: "Pending",
-          });
+          })
+          .returning();
 
         return {
           subscription,
           order,
-          customer
+          customer,
+          delivery
         };
       });
 
@@ -749,7 +773,7 @@ export function registerRoutes(app: Express) {
 
   // Customers management
   // In-memory storage for customers (temporary solution)
-  let customers = [
+  let customersInMemory = [
     {
       id: 1,
       name: "Akash Kiran",
@@ -770,7 +794,7 @@ export function registerRoutes(app: Express) {
         registeredOn: new Date().toISOString()
       };
       
-      customers.push(newCustomer);
+      customersInMemory.push(newCustomer);
       console.log('Added new customer:', newCustomer);
       res.json(newCustomer);
     } catch (error) {
@@ -781,7 +805,7 @@ export function registerRoutes(app: Express) {
 
   app.get("/api/customers", async (req, res) => {
     try {
-      res.json(customers);
+      res.json(customersInMemory);
     } catch (error) {
       console.error('Error fetching customers:', error);
       res.status(500).json({ error: 'Failed to fetch customers' });
