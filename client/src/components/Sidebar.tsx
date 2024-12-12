@@ -37,9 +37,9 @@ export function Sidebar() {
   const { logout } = useUser();
 
   return (
-    <div className="flex flex-col h-screen w-64 bg-emerald-900 text-emerald-50">
+    <div className="flex flex-col h-screen w-64 bg-emerald-900 text-white">
       <div className="p-4 border-b border-emerald-800">
-        <h1 className="text-xl font-bold text-white">Fun Adventure Kitchen</h1>
+        <h1 className="text-xl font-bold">Fun Adventure Kitchen</h1>
       </div>
       
       <nav className="flex-1 p-4">
@@ -53,10 +53,10 @@ export function Sidebar() {
                   <Link href={item.href}>
                     <button
                       className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-emerald-100",
+                        "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-white",
                         location === item.href
-                          ? "bg-emerald-800 text-white font-medium"
-                          : "hover:bg-emerald-800/50 hover:text-white"
+                          ? "bg-emerald-800 font-medium"
+                          : "hover:bg-emerald-800/50"
                       )}
                     >
                       <Icon className="h-5 w-5" />
@@ -70,7 +70,9 @@ export function Sidebar() {
 
           {/* Delivery Management Section */}
           <div>
-            <h2 className="mb-2 px-3 text-sm font-semibold text-emerald-200">Delivery Management</h2>
+            <h2 className="mb-2 px-3 text-sm font-semibold text-emerald-200">
+              Delivery Management
+            </h2>
             <ul className="space-y-1">
               {menuItems.slice(5, 9).map((item) => {
                 const Icon = item.icon;
@@ -79,10 +81,10 @@ export function Sidebar() {
                     <Link href={item.href}>
                       <button
                         className={cn(
-                          "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-emerald-100",
+                          "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-white",
                           location === item.href
-                            ? "bg-emerald-800 text-white font-medium"
-                            : "hover:bg-emerald-800/50 hover:text-white"
+                            ? "bg-emerald-800 font-medium"
+                            : "hover:bg-emerald-800/50"
                         )}
                       >
                         <Icon className="h-5 w-5" />
@@ -104,13 +106,13 @@ export function Sidebar() {
                   <Link href={item.href}>
                     <button
                       className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-emerald-50/70",
+                        "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-white",
                         location === item.href
-                          ? "bg-emerald-800 text-white font-medium"
-                          : "hover:bg-emerald-800/50 hover:text-white"
+                          ? "bg-emerald-800 font-medium"
+                          : "hover:bg-emerald-800/50"
                       )}
                     >
-                      <Icon className="h-5 w-5 opacity-70 group-hover:opacity-100" />
+                      <Icon className="h-5 w-5" />
                       {item.label}
                     </button>
                   </Link>
@@ -124,7 +126,7 @@ export function Sidebar() {
       <div className="p-4 border-t border-emerald-800">
         <Button
           variant="ghost"
-          className="w-full justify-start text-emerald-50/70 hover:bg-emerald-800/50 hover:text-white"
+          className="w-full justify-start text-white hover:bg-emerald-800/50"
           onClick={() => logout()}
         >
           <LogOut className="mr-2 h-5 w-5" />
