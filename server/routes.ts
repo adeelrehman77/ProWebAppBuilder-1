@@ -2,7 +2,7 @@ import { type Express } from "express";
 import { createServer } from "http";
 import { setupAuth } from "./auth";
 import { db } from "../db";
-import { categories, products, deliveries, orders, orderItems, subscriptions, subscriptionItems, routes, drivers } from "@db/schema";
+import { categories, products, deliveries, orders, orderItems, subscriptions, subscriptionItems, routes, drivers, zones } from "@db/schema";
 import { eq } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
@@ -149,20 +149,46 @@ export function registerRoutes(app: Express) {
         .leftJoin(deliveries, eq(deliveries.orderId, orders.id))
         .orderBy(orders.createdAt);
 
-      const ordersWithDetails = result.reduce((acc, curr) => {
+      type OrderItem = {
+        id: number;
+        productId: number | null;
+        quantity: number;
+        price: number;
+      };
+
+      type OrderDelivery = {
+        id: number;
+        date: Date;
+        slot: string;
+        status: string;
+      };
+
+      type OrderWithDetails = {
+        id: number;
+        status: string;
+        totalAmount: number;
+        createdAt: Date | null;
+        items: OrderItem[];
+        deliveries: OrderDelivery[];
+      };
+
+      const ordersWithDetails = result.reduce<OrderWithDetails[]>((acc, curr) => {
         const existingOrder = acc.find(o => o.id === curr.id);
         if (existingOrder) {
           if (curr.items?.id && !existingOrder.items.find(i => i.id === curr.items.id)) {
-            existingOrder.items.push(curr.items);
+            existingOrder.items.push(curr.items as OrderItem);
           }
           if (curr.deliveries?.id && !existingOrder.deliveries.find(d => d.id === curr.deliveries.id)) {
-            existingOrder.deliveries.push(curr.deliveries);
+            existingOrder.deliveries.push(curr.deliveries as OrderDelivery);
           }
         } else {
           acc.push({
-            ...curr,
-            items: curr.items?.id ? [curr.items] : [],
-            deliveries: curr.deliveries?.id ? [curr.deliveries] : []
+            id: curr.id,
+            status: curr.status,
+            totalAmount: curr.totalAmount,
+            createdAt: curr.createdAt,
+            items: curr.items?.id ? [curr.items as OrderItem] : [],
+            deliveries: curr.deliveries?.id ? [curr.deliveries as OrderDelivery] : []
           });
         }
         return acc;

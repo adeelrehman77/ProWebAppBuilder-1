@@ -24,8 +24,9 @@ const menuItems = [
   { icon: Grid, label: "Categories", href: "/categories" },
   { icon: Users, label: "Subscriptions", href: "/customers" },
   // Delivery Management
-  { icon: Truck, label: "Deliveries", href: "/deliveries" },
+  { icon: Map, label: "Zones", href: "/zones" },
   { icon: Map, label: "Routes", href: "/routes" },
+  { icon: Truck, label: "Deliveries", href: "/deliveries" },
   { icon: UserCog, label: "Drivers", href: "/drivers" },
   { icon: CreditCard, label: "Payments", href: "/payments" },
   { icon: FileText, label: "Reports", href: "/reports" },
@@ -37,8 +38,8 @@ export function Sidebar() {
   const { logout } = useUser();
 
   return (
-    <div className="flex flex-col h-screen w-64 bg-teal-700 text-white">
-      <div className="p-4 border-b border-teal-600">
+    <div className="flex flex-col h-screen w-64 bg-emerald-800 text-white">
+      <div className="p-4 border-b border-emerald-700">
         <h1 className="text-xl font-bold">Fun Adventure Kitchen</h1>
       </div>
       
@@ -53,8 +54,8 @@ export function Sidebar() {
                     className={cn(
                       "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
                       location === item.href
-                        ? "bg-teal-800 text-white"
-                        : "hover:bg-teal-600"
+                        ? "bg-emerald-900 text-white"
+                        : "hover:bg-emerald-700"
                     )}
                   >
                     <Icon className="h-5 w-5" />
@@ -67,10 +68,10 @@ export function Sidebar() {
         </ul>
       </nav>
 
-      <div className="p-4 border-t border-teal-600">
+      <div className="p-4 border-t border-emerald-700">
         <Button
           variant="ghost"
-          className="w-full justify-start text-white hover:bg-teal-600"
+          className="w-full justify-start text-white hover:bg-emerald-700"
           onClick={() => logout()}
         >
           <LogOut className="mr-2 h-5 w-5" />
