@@ -72,7 +72,7 @@ export function Sidebar() {
 
           {/* Delivery Management Section */}
           <div>
-            <h2 className="mb-2 px-3 text-sm font-semibold text-emerald-200">
+            <h2 className="mb-2 px-3 text-sm font-semibold text-white">
               Delivery Management
             </h2>
             <ul className="space-y-1">
