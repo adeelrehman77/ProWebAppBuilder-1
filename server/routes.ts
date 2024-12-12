@@ -2,7 +2,7 @@ import { type Express } from "express";
 import { createServer } from "http";
 import { setupAuth } from "./auth";
 import { db } from "../db";
-import { categories, products, deliveries, orders, orderItems, subscriptions, subscriptionItems } from "@db/schema";
+import { categories, products, deliveries, orders, orderItems, subscriptions, subscriptionItems, routes, drivers } from "@db/schema";
 import { eq } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
@@ -319,5 +319,173 @@ export function registerRoutes(app: Express) {
   });
 
   const httpServer = createServer(app);
+  // Routes management
+  app.get("/api/routes", async (req, res) => {
+    try {
+      const result = await db.select().from(routes).orderBy(routes.name);
+      res.json(result);
+    } catch (error) {
+      console.error('Error fetching routes:', error);
+      res.status(500).json({ error: 'Failed to fetch routes' });
+    }
+  });
+
+  app.post("/api/routes", async (req, res) => {
+    try {
+      const result = await db.insert(routes).values(req.body).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error('Error creating route:', error);
+      res.status(500).json({ error: 'Failed to create route' });
+    }
+  });
+
+  app.put("/api/routes/:id", async (req, res) => {
+    try {
+      const result = await db
+        .update(routes)
+        .set(req.body)
+        .where(eq(routes.id, parseInt(req.params.id)))
+        .returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error('Error updating route:', error);
+      res.status(500).json({ error: 'Failed to update route' });
+    }
+  });
+
+  // Drivers management
+  app.get("/api/drivers", async (req, res) => {
+    try {
+      const result = await db.select().from(drivers).orderBy(drivers.name);
+      res.json(result);
+    } catch (error) {
+      console.error('Error fetching drivers:', error);
+      res.status(500).json({ error: 'Failed to fetch drivers' });
+    }
+  });
+
+  app.post("/api/drivers", async (req, res) => {
+    try {
+      const result = await db.insert(drivers).values(req.body).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error('Error creating driver:', error);
+      res.status(500).json({ error: 'Failed to create driver' });
+    }
+  });
+
+  app.put("/api/drivers/:id", async (req, res) => {
+    try {
+      const result = await db
+        .update(drivers)
+        .set(req.body)
+        .where(eq(drivers.id, parseInt(req.params.id)))
+        .returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error('Error updating driver:', error);
+      res.status(500).json({ error: 'Failed to update driver' });
+    }
+  });
+
+  // Enhanced delivery management
+  app.get("/api/deliveries", async (req, res) => {
+    try {
+      const result = await db
+        .select({
+          id: deliveries.id,
+          orderId: deliveries.orderId,
+          date: deliveries.date,
+          slot: deliveries.slot,
+          status: deliveries.status,
+          notes: deliveries.notes,
+          assignedAt: deliveries.assignedAt,
+          startedAt: deliveries.startedAt,
+          completedAt: deliveries.completedAt,
+          route: {
+            id: routes.id,
+            name: routes.name,
+            areas: routes.areas,
+            estimatedTime: routes.estimatedTime,
+            maxDeliveries: routes.maxDeliveries,
+            startLocation: routes.startLocation,
+            endLocation: routes.endLocation
+          },
+          driver: {
+            id: drivers.id,
+            name: drivers.name,
+            phone: drivers.phone,
+            vehicleType: drivers.vehicleType,
+            vehicleNumber: drivers.vehicleNumber,
+            status: drivers.status,
+            currentLocation: drivers.currentLocation
+          },
+          order: {
+            id: orders.id,
+            status: orders.status,
+            totalAmount: orders.totalAmount
+          }
+        })
+        .from(deliveries)
+        .leftJoin(routes, eq(deliveries.routeId, routes.id))
+        .leftJoin(drivers, eq(deliveries.driverId, drivers.id))
+        .leftJoin(orders, eq(deliveries.orderId, orders.id))
+        .orderBy(deliveries.date);
+      
+      const formattedResult = result.map(delivery => ({
+        ...delivery,
+        date: delivery.date ? new Date(delivery.date).toISOString() : null,
+        assignedAt: delivery.assignedAt ? new Date(delivery.assignedAt).toISOString() : null,
+        startedAt: delivery.startedAt ? new Date(delivery.startedAt).toISOString() : null,
+        completedAt: delivery.completedAt ? new Date(delivery.completedAt).toISOString() : null
+      }));
+
+      res.json(formattedResult);
+    } catch (error) {
+      console.error('Error fetching deliveries:', error);
+      res.status(500).json({ error: 'Failed to fetch deliveries' });
+    }
+  });
+
+  // Add endpoint to update delivery status
+  app.put("/api/deliveries/:id/status", async (req, res) => {
+    try {
+      const { status } = req.body;
+      const deliveryId = parseInt(req.params.id);
+      
+      const statusToTimestamp = {
+        'Assigned': 'assignedAt',
+        'InProgress': 'startedAt',
+        'Completed': 'completedAt'
+      };
+
+      const updateData = {
+        status,
+        ...(statusToTimestamp[status] && { [statusToTimestamp[status]]: new Date() })
+      };
+
+      const result = await db
+        .update(deliveries)
+        .set(updateData)
+        .where(eq(deliveries.id, deliveryId))
+        .returning();
+
+      // Update driver status if delivery status changes
+      if (result[0].driverId) {
+        const driverStatus = status === 'Completed' ? 'available' : 'on_delivery';
+        await db
+          .update(drivers)
+          .set({ status: driverStatus })
+          .where(eq(drivers.id, result[0].driverId));
+      }
+
+      res.json(result[0]);
+    } catch (error) {
+      console.error('Error updating delivery status:', error);
+      res.status(500).json({ error: 'Failed to update delivery status' });
+    }
+  });
+
   return httpServer;
 }

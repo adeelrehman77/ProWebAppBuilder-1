@@ -1,5 +1,7 @@
 import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { type InferModel } from "drizzle-orm";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -49,12 +51,48 @@ export const orderItems = pgTable("order_items", {
   price: integer("price").notNull(),
 });
 
+export const routes = pgTable("routes", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  areas: text("areas").notNull(), // Comma-separated areas covered
+  estimatedTime: integer("estimated_time").notNull(), // In minutes
+  maxDeliveries: integer("max_deliveries").notNull().default(20),
+  active: boolean("active").default(true),
+  startLocation: text("start_location").notNull(),
+  endLocation: text("end_location").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const drivers = pgTable("drivers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  phone: text("phone").notNull(),
+  email: text("email"),
+  licenseNumber: text("license_number").notNull(),
+  vehicleNumber: text("vehicle_number").notNull(),
+  vehicleType: text("vehicle_type").notNull(),
+  maxCapacity: integer("max_capacity").notNull().default(50),
+  active: boolean("active").default(true),
+  status: text("status").notNull().default('available'), // available, on_delivery, off_duty
+  currentLocation: text("current_location"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const deliveries = pgTable("deliveries", {
   id: serial("id").primaryKey(), 
   orderId: integer("order_id").references(() => orders.id),
+  routeId: integer("route_id").references(() => routes.id),
+  driverId: integer("driver_id").references(() => drivers.id),
   date: timestamp("date").notNull(),
   slot: text("slot").notNull(), // Lunch/Dinner
-  status: text("status").notNull(), // Pending/Completed
+  status: text("status").notNull(), // Pending/Assigned/InProgress/Completed/Failed
+  notes: text("notes"),
+  assignedAt: timestamp("assigned_at"),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
 });
 
 // Schema validation
@@ -73,12 +111,24 @@ export const selectOrderSchema = createSelectSchema(orders);
 export const insertOrderItemSchema = createInsertSchema(orderItems);
 export const selectOrderItemSchema = createSelectSchema(orderItems);
 
+export const insertRouteSchema = createInsertSchema(routes);
+export const selectRouteSchema = createSelectSchema(routes);
+
+export const insertDriverSchema = createInsertSchema(drivers);
+export const selectDriverSchema = createSelectSchema(drivers);
+
 export const insertDeliverySchema = createInsertSchema(deliveries);
 export const selectDeliverySchema = createSelectSchema(deliveries);
 
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
+
+export type Route = typeof routes.$inferSelect;
+export type InsertRoute = typeof routes.$inferInsert;
+
+export type Driver = typeof drivers.$inferSelect;
+export type InsertDriver = typeof drivers.$inferInsert;
 
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = typeof categories.$inferInsert;
@@ -94,6 +144,47 @@ export type InsertOrderItem = typeof orderItems.$inferInsert;
 
 export type Delivery = typeof deliveries.$inferSelect;
 export type InsertDelivery = typeof deliveries.$inferInsert;
+
+// Define relations
+// Define relations
+export const ordersRelations = relations(orders, ({ many }) => ({
+  deliveries: many(deliveries),
+  items: many(orderItems)
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+  product: one(products, {
+    fields: [orderItems.productId],
+    references: [products.id],
+  })
+}));
+
+export const routesRelations = relations(routes, ({ many }) => ({
+  deliveries: many(deliveries)
+}));
+
+export const driversRelations = relations(drivers, ({ many }) => ({
+  deliveries: many(deliveries)
+}));
+
+export const deliveriesRelations = relations(deliveries, ({ one }) => ({
+  route: one(routes, {
+    fields: [deliveries.routeId],
+    references: [routes.id],
+  }),
+  driver: one(drivers, {
+    fields: [deliveries.driverId],
+    references: [drivers.id],
+  }),
+  order: one(orders, {
+    fields: [deliveries.orderId],
+    references: [orders.id],
+  })
+}));
 
 export const subscriptions = pgTable("subscriptions", {
   id: serial("id").primaryKey(),
