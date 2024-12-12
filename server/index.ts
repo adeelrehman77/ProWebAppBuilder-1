@@ -10,8 +10,19 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, "../client/dist")));
 
+// Register routes first
+const server = registerRoutes(app);
+
+// Error handling middleware
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('Error:', err);
+  const status = err.status || err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+  res.status(status).json({ message });
+});
+
+// Request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -30,55 +41,40 @@ app.use((req, res, next) => {
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-
       if (logLine.length > 80) {
         logLine = logLine.slice(0, 79) + "…";
       }
-
       log(logLine);
     }
   });
-
   next();
 });
 
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, "../client/dist")));
+}
+
+// Client-side routing handler - must be after API routes
+app.get('*', (req: Request, res: Response) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'), (err) => {
+      if (err) {
+        console.error('Error sending index.html:', err);
+        res.status(500).send('Error loading application');
+      }
+    });
+  }
+});
+
+// Setup Vite in development
 (async () => {
-  const server = registerRoutes(app);
-
-  // Error handling middleware
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    console.error('Error:', err);
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-  });
-
-  // Handle client-side routing
-  app.get('*', (req: Request, res: Response) => {
-    // Don't redirect API calls
-    if (!req.path.startsWith('/api')) {
-      const indexPath = path.join(__dirname, '../client/dist/index.html');
-      res.sendFile(indexPath, (err) => {
-        if (err) {
-          console.error('Error sending index.html:', err);
-          res.status(500).send('Error loading application');
-        }
-      });
-    }
-  });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client
   const PORT = 5000;
   server.listen(PORT, "0.0.0.0", () => {
     log(`serving on port ${PORT}`);

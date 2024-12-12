@@ -2,7 +2,10 @@ import { type Express } from "express";
 import { createServer } from "http";
 import { setupAuth } from "./auth";
 import { db } from "../db";
-import { categories, products, deliveries, orders, orderItems, subscriptions, subscriptionItems, routes, drivers } from "@db/schema";
+import { 
+  categories, products, deliveries, orders, orderItems, 
+  routes, drivers, zones 
+} from "@db/schema";
 import { eq } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
@@ -54,6 +57,93 @@ export function registerRoutes(app: Express) {
     const url = `/uploads/${req.file.filename}`;
     console.log('File uploaded successfully:', url);
     res.json({ url });
+  });
+
+  // Zones Management
+  app.get("/api/zones", async (req, res) => {
+    try {
+      const result = await db
+        .select({
+          id: zones.id,
+          name: zones.name,
+          description: zones.description,
+          active: zones.active,
+          color: zones.color,
+          createdAt: zones.createdAt,
+          updatedAt: zones.updatedAt,
+          routes: {
+            id: routes.id,
+            name: routes.name,
+          },
+        })
+        .from(zones)
+        .leftJoin(routes, eq(routes.zoneId, zones.id))
+        .orderBy(zones.name);
+
+      // Group routes by zone
+      const zonesWithRoutes = result.reduce((acc: any[], curr) => {
+        const existingZone = acc.find(z => z.id === curr.id);
+        if (existingZone) {
+          if (curr.routes?.id) {
+            existingZone.routes.push(curr.routes);
+          }
+        } else {
+          acc.push({
+            id: curr.id,
+            name: curr.name,
+            description: curr.description,
+            active: curr.active,
+            color: curr.color,
+            createdAt: curr.createdAt,
+            updatedAt: curr.updatedAt,
+            routes: curr.routes?.id ? [curr.routes] : [],
+          });
+        }
+        return acc;
+      }, []);
+
+      res.json(zonesWithRoutes);
+    } catch (error) {
+      console.error('Error fetching zones:', error);
+      res.status(500).json({ error: 'Failed to fetch zones' });
+    }
+  });
+
+  app.post("/api/zones", async (req, res) => {
+    try {
+      const result = await db.insert(zones).values(req.body).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error('Error creating zone:', error);
+      res.status(500).json({ error: 'Failed to create zone' });
+    }
+  });
+
+  app.put("/api/zones/:id", async (req, res) => {
+    try {
+      const result = await db
+        .update(zones)
+        .set(req.body)
+        .where(eq(zones.id, parseInt(req.params.id)))
+        .returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error('Error updating zone:', error);
+      res.status(500).json({ error: 'Failed to update zone' });
+    }
+  });
+
+  app.delete("/api/zones/:id", async (req, res) => {
+    try {
+      const result = await db
+        .delete(zones)
+        .where(eq(zones.id, parseInt(req.params.id)))
+        .returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error('Error deleting zone:', error);
+      res.status(500).json({ error: 'Failed to delete zone' });
+    }
   });
 
   // Categories
