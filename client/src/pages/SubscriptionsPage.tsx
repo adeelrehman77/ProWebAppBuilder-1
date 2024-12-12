@@ -73,6 +73,19 @@ export default function SubscriptionsPage() {
 
     try {
       // Create subscription with items
+      // Ensure dates are valid before creating the subscription
+      const startDate = new Date(formData.startDate + 'T00:00:00Z');
+      const endDate = new Date(formData.endDate + 'T00:00:00Z');
+      
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        toast({
+          variant: "destructive",
+          title: "Invalid dates",
+          description: "Please enter valid start and end dates",
+        });
+        return;
+      }
+
       const subscriptionData = {
         subscription: {
           name: formData.name,
@@ -82,8 +95,8 @@ export default function SubscriptionsPage() {
           buildingName: formData.buildingName,
           flatNumber: formData.flatNumber,
           paymentMode: formData.paymentMode,
-          startDate: new Date(formData.startDate),
-          endDate: new Date(formData.endDate),
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
           status: 'pending'
         },
         items: formData.products.map(product => ({
@@ -92,11 +105,17 @@ export default function SubscriptionsPage() {
         }))
       };
 
+      // Log the subscription data for debugging
+      console.log('Sending subscription data:', subscriptionData);
+      
       const response = await fetch("/api/subscriptions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(subscriptionData),
       });
+
+      const responseData = await response.text();
+      console.log('Server response:', responseData);
 
       if (!response.ok) {
         const error = await response.text();
