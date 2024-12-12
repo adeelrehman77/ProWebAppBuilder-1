@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { autoUpdateDeliveryStatus } from "./scheduler";
 
 const app = express();
 app.use(express.json());
@@ -61,5 +62,16 @@ app.use((req, res, next) => {
   const PORT = 5000;
   server.listen(PORT, "0.0.0.0", () => {
     log(`serving on port ${PORT}`);
+    
+    // Set up auto-update scheduler for deliveries
+    setInterval(async () => {
+      try {
+        await autoUpdateDeliveryStatus();
+      } catch (error) {
+        console.error('Error in auto-update scheduler:', error);
+      }
+    }, 60000); // Check every minute
+    
+    log('Delivery auto-update scheduler started');
   });
 })();
