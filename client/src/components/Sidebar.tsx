@@ -10,6 +10,9 @@ import {
   FileText,
   Settings,
   LogOut,
+  Truck,
+  Map,
+  UserCog,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/use-user";
@@ -20,6 +23,10 @@ const menuItems = [
   { icon: Package, label: "Products", href: "/products" },
   { icon: Grid, label: "Categories", href: "/categories" },
   { icon: Users, label: "Subscriptions", href: "/customers" },
+  // Delivery Management
+  { icon: Truck, label: "Deliveries", href: "/deliveries" },
+  { icon: Map, label: "Routes", href: "/routes" },
+  { icon: UserCog, label: "Drivers", href: "/drivers" },
   { icon: CreditCard, label: "Payments", href: "/payments" },
   { icon: FileText, label: "Reports", href: "/reports" },
   { icon: Settings, label: "Settings", href: "/settings" },
