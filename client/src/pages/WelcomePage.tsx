@@ -18,33 +18,15 @@ export default function WelcomePage() {
   return (
     <div className="flex flex-col min-h-screen relative">
       {/* Background with high contrast text content */}
-      <div className="fixed inset-0 z-0 bg-emerald-900">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mt-20 text-white">
-            <h1 className="text-5xl font-bold mb-6">Fun Adventure Kitchen</h1>
-            <div className="space-y-4 text-xl">
-              <p className="font-semibold">Homely Tiffin Service</p>
-              <p className="text-emerald-100">
-                North Indian cuisine is known for its vibrant flavors and diverse dishes.
-                Signature items include butter chicken, biryani, and dal makhani, typically served
-                with naan or roti.
-              </p>
-              <p className="text-emerald-100">
-                Ingredients such as ghee and paneer enrich the taste, while
-                cooking methods like slow-cooking and tandoor baking contribute to its unique
-                culinary experience.
-              </p>
-              <div className="mt-8 space-y-4">
-                <p className="font-semibold text-emerald-300">Contact Us:</p>
-                <p className="text-emerald-100">Phone: 0551686600</p>
-                <p className="text-emerald-100">Landline: 04-4484610</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="fixed inset-0 z-0">
+        <img
+          src="/uploads/Oodles of Noodles Celebration.png"
+          alt="Fun Adventure Kitchen Background"
+          className="w-full h-full object-cover"
+        />
       </div>
 
-      {/* Main content with transparent image overlay */}
+      {/* Main content with welcome text */}
       <main className="flex-1 relative z-10">
         <div className="container mx-auto px-4 py-8">
           {/* Subscribe Now Button */}
@@ -57,18 +39,11 @@ export default function WelcomePage() {
             </Button>
           </div>
 
-          <div className="mt-20 flex justify-center items-center">
-            {/* Semi-transparent image overlay */}
-            <div className="relative w-full max-w-4xl">
-              <img
-                src="/uploads/Oodles of Noodles Celebration.png"
-                alt="Fun Adventure Kitchen"
-                className="w-full h-auto"
-                style={{
-                  opacity: '0.65'
-                }}
-              />
-            </div>
+          {/* Welcome Text */}
+          <div className="text-center mt-8">
+            <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
+              Welcome to Fun Adventure Kitchen
+            </h1>
           </div>
         </div>
       </main>
