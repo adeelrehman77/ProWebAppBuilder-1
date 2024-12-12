@@ -678,6 +678,38 @@ export function registerRoutes(app: Express) {
   });
 
   // Customers management
+  app.post("/api/customers/bulk-upload", upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      // Process the Excel file and save customers
+      // For now, just return success
+      res.json({ message: "Customers uploaded successfully" });
+    } catch (error) {
+      console.error('Error uploading customers:', error);
+      res.status(500).json({ error: 'Failed to upload customers' });
+    }
+  });
+
+  app.post("/api/customers", async (req, res) => {
+    try {
+      // Create a new customer
+      // For now, just return mock data
+      const newCustomer = {
+        id: Date.now(),
+        ...req.body,
+        balance: 0.00,
+        registeredOn: new Date().toISOString()
+      };
+      res.json(newCustomer);
+    } catch (error) {
+      console.error('Error creating customer:', error);
+      res.status(500).json({ error: 'Failed to create customer' });
+    }
+  });
+
   app.get("/api/customers", async (req, res) => {
     try {
       // For now, returning mock data

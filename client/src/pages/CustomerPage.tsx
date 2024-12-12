@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { AddCustomerDialog } from "@/components/customers/AddCustomerDialog";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +25,8 @@ interface Customer {
 }
 
 export default function CustomerPage() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchName, setSearchName] = useState("");
   const [searchPhone, setSearchPhone] = useState("");
   const [searchBalance, setSearchBalance] = useState("");
@@ -95,7 +99,66 @@ export default function CustomerPage() {
       <div className="grid gap-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Customers</h1>
-          <Button>Add Customer</Button>
+          <div className="flex gap-2">
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              id="bulkUploadInput"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                  const response = await fetch('/api/customers/bulk-upload', {
+                    method: 'POST',
+                    body: formData,
+                  });
+
+                  if (!response.ok) throw new Error('Failed to upload customers');
+
+                  toast({ title: 'Customers uploaded successfully' });
+                  queryClient.invalidateQueries({ queryKey: ['customers'] });
+                } catch (error) {
+                  toast({
+                    variant: 'destructive',
+                    title: 'Error uploading customers',
+                    description: error instanceof Error ? error.message : 'Unknown error occurred',
+                  });
+                }
+              }}
+            />
+            <Button
+              variant="outline"
+              onClick={() => document.getElementById('bulkUploadInput')?.click()}
+            >
+              Bulk Upload
+            </Button>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  const XLSX = await import('xlsx');
+                  const ws = XLSX.utils.json_to_sheet(customers || []);
+                  const wb = XLSX.utils.book_new();
+                  XLSX.utils.book_append_sheet(wb, ws, 'Customers');
+                  XLSX.writeFile(wb, 'customers.xlsx');
+                } catch (error) {
+                  toast({
+                    variant: 'destructive',
+                    title: 'Error exporting customers',
+                    description: 'Failed to export customers to Excel',
+                  });
+                }
+              }}
+            >
+              Export to Excel
+            </Button>
+            <AddCustomerDialog />
+          </div>
         </div>
 
         <div className="grid grid-cols-5 gap-4">
