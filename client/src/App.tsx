@@ -52,7 +52,9 @@ function App() {
             <Route path="/orders" component={OrdersPage} />
             <Route path="/products" component={ProductsPage} />
             <Route path="/categories" component={CategoriesPage} />
-            <Route path="/customers" component={CustomerPage} />
+            <Route path="/customers">
+              {() => <CustomerPage />}
+            </Route>
             <Route path="/drivers" component={DriversPage} />
             <Route path="/deliveries" component={DeliveriesPage} />
             <Route path="/payments" component={PaymentsPage} />
