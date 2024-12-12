@@ -4,7 +4,16 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Download } from "lucide-react";
+import { Download, Calendar, Printer } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function ReportsPage() {
   const { data: stats } = useQuery({
@@ -25,18 +34,30 @@ export default function ReportsPage() {
     }
   });
 
-  const [selectedMealType, setSelectedMealType] = useState<string>("all");
+  const [filters, setFilters] = useState({
+    date: new Date().toISOString().split('T')[0],
+    deliveryTime: "lunch",
+    route: "Fun Adventure Route, Deira, Karama",
+    showDeliveries: true,
+    splitRouteWise: false,
+    expectedOnly: true
+  });
 
   const upcomingDeliveries = orders?.filter((order: any) => {
     const deliveryDate = new Date(order.deliveryDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const orderDate = new Date(filters.date);
     
-    const matchesMealType = selectedMealType === "all" || 
-                           order.mealType?.toLowerCase() === selectedMealType;
+    const matchesDate = deliveryDate.toISOString().split('T')[0] === filters.date;
+    const matchesTime = filters.deliveryTime === "all" || 
+                       order.deliveryTime?.toLowerCase() === filters.deliveryTime;
     
-    return deliveryDate >= today && matchesMealType;
+    return matchesDate && matchesTime;
   }) || [];
+
+  const handleExport = () => {
+    // TODO: Implement export functionality
+    console.log("Exporting delivery sheet...");
+  };
 
   return (
     <>
@@ -112,40 +133,132 @@ export default function ReportsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Upcoming Deliveries</CardTitle>
+              <CardTitle>Delivery Sheet</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center gap-4 mb-4">
-                  <Label htmlFor="meal-type">Meal Type:</Label>
-                  <select
-                    id="meal-type"
-                    value={selectedMealType}
-                    onChange={(e) => setSelectedMealType(e.target.value)}
-                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option value="all">All Meals</option>
-                    <option value="lunch">Lunch</option>
-                    <option value="dinner">Dinner</option>
-                  </select>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="delivery-date">Delivery Date</Label>
+                    <div className="relative">
+                      <Input
+                        id="delivery-date"
+                        type="date"
+                        value={filters.date}
+                        onChange={(e) => setFilters(prev => ({ ...prev, date: e.target.value }))}
+                      />
+                      <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="delivery-time">Delivery Time</Label>
+                    <Select
+                      value={filters.deliveryTime}
+                      onValueChange={(value) => setFilters(prev => ({ ...prev, deliveryTime: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="lunch">Lunch</SelectItem>
+                        <SelectItem value="dinner">Dinner</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="route">Route</Label>
+                    <Select
+                      value={filters.route}
+                      onValueChange={(value) => setFilters(prev => ({ ...prev, route: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select route" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Fun Adventure Route, Deira, Karama">
+                          Fun Adventure Route, Deira, Karama
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+
+                <div className="flex flex-wrap gap-4 items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="show-deliveries"
+                        checked={filters.showDeliveries}
+                        onCheckedChange={(checked) => 
+                          setFilters(prev => ({ ...prev, showDeliveries: checked as boolean }))
+                        }
+                      />
+                      <Label htmlFor="show-deliveries">Deliveries</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="split-route"
+                        checked={filters.splitRouteWise}
+                        onCheckedChange={(checked) => 
+                          setFilters(prev => ({ ...prev, splitRouteWise: checked as boolean }))
+                        }
+                      />
+                      <Label htmlFor="split-route">Split Route Wise</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="expected-only"
+                        checked={filters.expectedOnly}
+                        onCheckedChange={(checked) => 
+                          setFilters(prev => ({ ...prev, expectedOnly: checked as boolean }))
+                        }
+                      />
+                      <Label htmlFor="expected-only">Expected Only</Label>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleExport}>
+                      <Printer className="w-4 h-4 mr-2" />
+                      Print
+                    </Button>
+                    <Button variant="outline" onClick={handleExport}>
+                      <Download className="w-4 h-4 mr-2" />
+                      Export
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="text-sm text-muted-foreground">
+                    Estimated: Thursday 12 Dec :)
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    ** Data for future dates might change if there are any changes to the subscriptions by customers or admin.
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Generated at {new Date().toLocaleString()}
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   {upcomingDeliveries.map((order: any) => (
                     <div key={order.id} className="flex justify-between items-center p-2 border rounded">
                       <div>
                         <span className="font-medium">{order.customerName}</span>
                         <span className="text-sm text-muted-foreground ml-2">
-                          ({order.mealType})
+                          [{order.deliveryTime}]
                         </span>
                       </div>
                       <div className="text-sm">
-                        {new Date(order.deliveryDate).toLocaleDateString()} [{order.deliverySlot}]
+                        {order.quantity} Units
                       </div>
                     </div>
                   ))}
                   {upcomingDeliveries.length === 0 && (
                     <div className="text-center text-muted-foreground py-4">
-                      No upcoming deliveries found
+                      No deliveries found for selected criteria
                     </div>
                   )}
                 </div>
