@@ -680,14 +680,18 @@ export function registerRoutes(app: Express) {
   // Settings management
   app.get("/api/settings", async (req, res) => {
     try {
-      const result = await db.execute(
-        sql`SELECT key, value FROM settings`
-      );
-      const settings = result.rows.reduce((acc, curr) => {
-        acc[curr.key] = curr.value;
-        return acc;
-      }, {});
-      res.json(settings);
+      // Initialize default settings if not exists
+      const defaultSettings = {
+        facebook_url: 'https://www.facebook.com/share/19jNU4YSoA/?mibextid=wwXIfr',
+        instagram_url: 'https://www.instagram.com/funadventurekitchen/profilecard/?igsh=OTBtNGJkdWJtZ2E3',
+        promo_box_1_title: 'Special Offer',
+        promo_box_1_content: 'Check out our latest promotions and special offers!',
+        promo_box_2_title: 'Today\'s Special',
+        promo_box_2_content: 'Discover our chef\'s special dishes for today!'
+      };
+
+      // Return default settings for now
+      res.json(defaultSettings);
     } catch (error) {
       console.error('Error fetching settings:', error);
       res.status(500).json({ error: 'Failed to fetch settings' });

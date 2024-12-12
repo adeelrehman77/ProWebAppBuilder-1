@@ -35,21 +35,37 @@ export default function CustomerPage() {
     endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   });
 
-  const { data: products } = useQuery<Product[]>({
+  const { data: products, error: productsError } = useQuery<Product[]>({
     queryKey: ["/api/products"],
     queryFn: async () => {
-      const response = await fetch('/api/products');
-      if (!response.ok) throw new Error('Failed to fetch products');
-      return response.json();
+      try {
+        const response = await fetch('/api/products');
+        if (!response.ok) {
+          console.error('Products API Error:', await response.text());
+          throw new Error('Failed to fetch products');
+        }
+        return response.json();
+      } catch (error) {
+        console.error('Products fetch error:', error);
+        throw error;
+      }
     }
   });
 
-  const { data: categories } = useQuery<Category[]>({
+  const { data: categories, error: categoriesError } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
     queryFn: async () => {
-      const response = await fetch('/api/categories');
-      if (!response.ok) throw new Error('Failed to fetch categories');
-      return response.json();
+      try {
+        const response = await fetch('/api/categories');
+        if (!response.ok) {
+          console.error('Categories API Error:', await response.text());
+          throw new Error('Failed to fetch categories');
+        }
+        return response.json();
+      } catch (error) {
+        console.error('Categories fetch error:', error);
+        throw error;
+      }
     }
   });
 
