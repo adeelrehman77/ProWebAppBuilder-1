@@ -70,7 +70,7 @@ export function AddRouteDialog() {
         throw new Error("Failed to create route");
       }
 
-      await queryClient.invalidateQueries(["routes"]);
+      await queryClient.invalidateQueries({ queryKey: ["routes"] });
       setOpen(false);
       setFormData({
         name: "",

@@ -164,7 +164,7 @@ export default function RoutesPage() {
 
   const uniqueHubs = [
     "All",
-    ...new Set(routes?.map((route: Route) => route.zone?.hub).filter(Boolean) || []),
+    ...Array.from(new Set(routes?.map((route: Route) => route.zone?.hub).filter(Boolean) || [])),
   ];
 
   return (
