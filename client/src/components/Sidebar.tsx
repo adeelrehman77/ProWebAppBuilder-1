@@ -37,8 +37,8 @@ export function Sidebar() {
   const { logout } = useUser();
 
   const linkClasses = "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-white";
-  const activeClasses = "bg-emerald-800 font-medium";
-  const inactiveClasses = "hover:bg-emerald-800/50";
+  const activeClasses = "bg-emerald-800";
+  const inactiveClasses = "hover:bg-emerald-800";
 
   return (
     <div className="flex flex-col h-screen w-64 bg-emerald-900">
@@ -124,7 +124,7 @@ export function Sidebar() {
       <div className="p-4 border-t border-emerald-800">
         <Button
           variant="ghost"
-          className="w-full justify-start text-white hover:bg-emerald-800/50"
+          className="w-full justify-start text-white hover:bg-emerald-800"
           onClick={() => logout()}
         >
           <LogOut className="mr-2 h-5 w-5" />
