@@ -104,13 +104,13 @@ export function Sidebar() {
                   <Link href={item.href}>
                     <button
                       className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-emerald-100",
+                        "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-emerald-50/70",
                         location === item.href
                           ? "bg-emerald-800 text-white font-medium"
                           : "hover:bg-emerald-800/50 hover:text-white"
                       )}
                     >
-                      <Icon className="h-5 w-5" />
+                      <Icon className="h-5 w-5 opacity-70 group-hover:opacity-100" />
                       {item.label}
                     </button>
                   </Link>
@@ -124,7 +124,7 @@ export function Sidebar() {
       <div className="p-4 border-t border-emerald-800">
         <Button
           variant="ghost"
-          className="w-full justify-start text-emerald-100 hover:bg-emerald-800/50 hover:text-white"
+          className="w-full justify-start text-emerald-50/70 hover:bg-emerald-800/50 hover:text-white"
           onClick={() => logout()}
         >
           <LogOut className="mr-2 h-5 w-5" />
