@@ -22,8 +22,9 @@ export default function WelcomePage() {
         <img
           src="/uploads/Oodles of Noodles Celebration.png"
           alt="Fun Adventure Kitchen Background"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover object-center scale-70"
         />
+        <div className="absolute inset-0 bg-black/30"></div>
       </div>
 
       {/* Main content with welcome text */}
@@ -57,7 +58,7 @@ export default function WelcomePage() {
             </div>
             <div className="flex space-x-6">
               <a
-                href={settings.facebook_url || "https://facebook.com"}
+                href={settings.facebook_url || "https://www.facebook.com/share/19jNU4YSoA/?mibextid=wwXIfr"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-emerald-300 transition-colors"
@@ -65,7 +66,7 @@ export default function WelcomePage() {
                 <SiFacebook className="h-6 w-6" />
               </a>
               <a
-                href={settings.instagram_url || "https://instagram.com"}
+                href={settings.instagram_url || "https://www.instagram.com/funadventurekitchen/profilecard/?igsh=OTBtNGJkdWJtZ2E3"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-emerald-300 transition-colors"
