@@ -382,7 +382,26 @@ export function registerRoutes(app: Express) {
   // Routes management
   app.get("/api/routes", async (req, res) => {
     try {
-      const result = await db.select().from(routes).orderBy(routes.name);
+      const result = await db
+        .select({
+          id: routes.id,
+          name: routes.name,
+          description: routes.description,
+          areas: routes.areas,
+          estimatedTime: routes.estimatedTime,
+          maxDeliveries: routes.maxDeliveries,
+          active: routes.active,
+          startLocation: routes.startLocation,
+          endLocation: routes.endLocation,
+          zone: {
+            id: zones.id,
+            name: zones.name,
+            hub: zones.hub,
+          }
+        })
+        .from(routes)
+        .leftJoin(zones, eq(routes.zoneId, zones.id))
+        .orderBy(routes.name);
       res.json(result);
     } catch (error) {
       console.error('Error fetching routes:', error);
@@ -392,7 +411,24 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/routes", async (req, res) => {
     try {
-      const result = await db.insert(routes).values(req.body).returning();
+      const { zoneId, ...routeData } = req.body;
+      
+      if (!zoneId) {
+        return res.status(400).json({ error: 'Zone ID is required' });
+      }
+
+      // Verify zone exists
+      const zone = await db.select().from(zones).where(eq(zones.id, zoneId)).limit(1);
+      if (!zone.length) {
+        return res.status(404).json({ error: 'Zone not found' });
+      }
+
+      const result = await db.insert(routes)
+        .values({
+          ...routeData,
+          zoneId: zoneId,
+        })
+        .returning();
       res.json(result[0]);
     } catch (error) {
       console.error('Error creating route:', error);

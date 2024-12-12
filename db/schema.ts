@@ -55,6 +55,7 @@ export const routes = pgTable("routes", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
+  zoneId: integer("zone_id").references(() => zones.id),
   areas: text("areas").notNull(), // Comma-separated areas covered
   estimatedTime: integer("estimated_time").notNull(), // In minutes
   maxDeliveries: integer("max_deliveries").notNull().default(20),
@@ -203,6 +204,11 @@ export type InsertZone = typeof zones.$inferInsert;
 
 export const insertZoneSchema = createInsertSchema(zones);
 export const selectZoneSchema = createSelectSchema(zones);
+
+// Define relations after both tables exist
+export const zonesRelations = relations(zones, ({ many }) => ({
+  routes: many(routes)
+}));
 export const subscriptions = pgTable("subscriptions", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
