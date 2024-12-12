@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Search, Pencil, Trash2 } from "lucide-react";
+import { Search, Pencil, Trash2 } from "lucide-react";
+import { AddZoneDialog } from "@/components/zones/AddZoneDialog";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/Sidebar";
 import { DataTable } from "@/components/ui/data-table";
@@ -154,10 +155,7 @@ export default function ZonesPage() {
               Manage delivery zones and their associated hubs
             </p>
           </div>
-          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Zone
-          </Button>
+          <AddZoneDialog />
         </div>
 
         <div className="bg-white rounded-lg shadow">
