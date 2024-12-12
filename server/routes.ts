@@ -772,29 +772,19 @@ export function registerRoutes(app: Express) {
   });
 
   // Customers management
-  // In-memory storage for customers (temporary solution)
-  let customersInMemory = [
-    {
-      id: 1,
-      name: "Akash Kiran",
-      phone: "91860 6862798",
-      balance: 0.00,
-      isActive: true,
-      route: "Bur Dubai",
-      registeredOn: "2024-12-12T17:45:00.000Z"
-    }
-  ];
-
   app.post("/api/customers", async (req, res) => {
     try {
-      const newCustomer = {
-        id: Date.now(),
-        ...req.body,
-        balance: 0.00,
-        registeredOn: new Date().toISOString()
-      };
+      const [newCustomer] = await db
+        .insert(customers)
+        .values({
+          name: req.body.name,
+          phone: req.body.phone,
+          email: req.body.email,
+          isActive: true,
+          route: req.body.route,
+        })
+        .returning();
       
-      customersInMemory.push(newCustomer);
       console.log('Added new customer:', newCustomer);
       res.json(newCustomer);
     } catch (error) {
@@ -805,7 +795,8 @@ export function registerRoutes(app: Express) {
 
   app.get("/api/customers", async (req, res) => {
     try {
-      res.json(customersInMemory);
+      const result = await db.select().from(customers);
+      res.json(result);
     } catch (error) {
       console.error('Error fetching customers:', error);
       res.status(500).json({ error: 'Failed to fetch customers' });
