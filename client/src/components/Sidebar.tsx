@@ -21,7 +21,8 @@ const menuItems = [
   { icon: Package, label: "Orders", href: "/orders" },
   { icon: Package, label: "Products", href: "/products" },
   { icon: Grid, label: "Categories", href: "/categories" },
-  { icon: Users, label: "Subscriptions", href: "/customers" },
+  { icon: Users, label: "Customers", href: "/customers" },
+  { icon: Users, label: "Subscriptions", href: "/subscriptions" },
   // Delivery Management
   { icon: Map, label: "Zones", href: "/zones" },
   { icon: Map, label: "Routes", href: "/routes" },

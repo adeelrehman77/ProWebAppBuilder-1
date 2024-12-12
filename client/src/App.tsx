@@ -52,7 +52,8 @@ function App() {
             <Route path="/orders" component={OrdersPage} />
             <Route path="/products" component={ProductsPage} />
             <Route path="/categories" component={CategoriesPage} />
-            <Route path="/customers">
+            <Route path="/customers" component={CustomerPage} />
+            <Route path="/subscriptions">
               {() => <CustomerPage />}
             </Route>
             <Route path="/drivers" component={DriversPage} />
