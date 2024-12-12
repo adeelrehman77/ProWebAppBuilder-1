@@ -32,15 +32,23 @@ function App() {
   return (
     <div className="flex min-h-screen">
       <Switch>
-        <Route path="/auth" component={AuthPage} />
+        <Route path="/auth">
+          <AuthPage />
+        </Route>
         <Route>
           <div className="flex w-full">
             <Sidebar />
             <main className="flex-1">
               <Switch>
-                <Route path="/deliveries/drivers" component={DriversPage} />
-                <Route path="/deliveries/routes" component={RoutesPage} />
-                <Route path="/deliveries" component={DeliveryDashboard} />
+                <Route path="/deliveries/drivers">
+                  <DriversPage />
+                </Route>
+                <Route path="/deliveries/routes">
+                  <RoutesPage />
+                </Route>
+                <Route path="/deliveries">
+                  <DeliveryDashboard />
+                </Route>
                 <Route path="/">
                   <DeliveryDashboard />
                 </Route>
