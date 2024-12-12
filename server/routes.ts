@@ -677,5 +677,35 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Settings management
+  app.get("/api/settings", async (req, res) => {
+    try {
+      const result = await db.execute(
+        sql`SELECT key, value FROM settings`
+      );
+      const settings = result.rows.reduce((acc, curr) => {
+        acc[curr.key] = curr.value;
+        return acc;
+      }, {});
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      res.status(500).json({ error: 'Failed to fetch settings' });
+    }
+  });
+
+  app.put("/api/settings", async (req, res) => {
+    try {
+      const { key, value } = req.body;
+      const result = await db.execute(
+        sql`UPDATE settings SET value = ${value}, updated_at = CURRENT_TIMESTAMP WHERE key = ${key} RETURNING *`
+      );
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating setting:', error);
+      res.status(500).json({ error: 'Failed to update setting' });
+    }
+  });
+
   return httpServer;
 }
