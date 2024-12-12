@@ -17,13 +17,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/use-user";
 
-const menuItems = [
+interface MenuItem {
+  icon: any;
+  label: string;
+  href: string;
+  submenu?: MenuItem[];
+}
+
+const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
   { icon: Package, label: "Orders", href: "/orders" },
   { icon: Package, label: "Products", href: "/products" },
   { icon: Grid, label: "Categories", href: "/categories" },
   { icon: Users, label: "Subscriptions", href: "/customers" },
-  // Delivery Management
   { 
     icon: Truck, 
     label: "Deliveries", 
@@ -52,20 +58,50 @@ export function Sidebar() {
         <ul className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            return (
-              <li key={item.href}>
-                <Link href={item.href}>
-                  <a
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-                      location === item.href
-                        ? "bg-teal-800 text-white"
-                        : "hover:bg-teal-600"
-                    )}
-                  >
+            if (item.submenu) {
+              return (
+                <li key={item.href} className="space-y-1">
+                  <div className="flex items-center gap-3 px-3 py-2 text-sm font-semibold">
                     <Icon className="h-5 w-5" />
                     {item.label}
-                  </a>
+                  </div>
+                  <ul className="pl-8 space-y-1">
+                    {item.submenu.map((subItem) => {
+                      const SubIcon = subItem.icon;
+                      return (
+                        <li key={subItem.href}>
+                          <Link
+                            href={subItem.href}
+                            className={cn(
+                              "flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm",
+                              location === subItem.href
+                                ? "bg-teal-800 text-white"
+                                : "hover:bg-teal-600"
+                            )}
+                          >
+                            <SubIcon className="h-4 w-4" />
+                            {subItem.label}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </li>
+              );
+            }
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                    location === item.href
+                      ? "bg-teal-800 text-white"
+                      : "hover:bg-teal-600"
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  {item.label}
                 </Link>
               </li>
             );
