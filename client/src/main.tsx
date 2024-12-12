@@ -22,34 +22,41 @@ import { useUser } from "./hooks/use-user";
 function Router() {
   const { user, isLoading } = useUser();
 
-  // Public routes first
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-border" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthPage />;
+  }
+
   return (
     <div className="flex min-h-screen">
-      <Switch>
-        <Route path="/customers" component={CustomerPage} />
-        {isLoading ? (
+      <Sidebar />
+      <div className="flex-1">
+        <Switch>
+          <Route path="/" component={DashboardPage} />
+          <Route path="/customers" component={CustomerPage} />
+          <Route path="/orders" component={OrdersPage} />
+          <Route path="/products" component={ProductsPage} />
+          <Route path="/categories" component={CategoriesPage} />
+          <Route path="/reports" component={ReportsPage} />
+          <Route path="/settings" component={SettingsPage} />
+          <Route path="/payments" component={PaymentsPage} />
+          <Route path="/deliveries/routes" component={RoutesPage} />
+          <Route path="/deliveries/drivers" component={DriversPage} />
           <Route>
-            <div className="flex items-center justify-center min-h-screen">
-              <Loader2 className="h-8 w-8 animate-spin text-border" />
+            <div className="p-8">
+              <h1 className="text-2xl font-bold">404 - Page Not Found</h1>
+              <p className="mt-4">The page you're looking for doesn't exist.</p>
             </div>
           </Route>
-        ) : !user ? (
-          <Route component={AuthPage} />
-        ) : (
-          <>
-            <Route path="/" component={DashboardPage} />
-            <Route path="/orders" component={OrdersPage} />
-            <Route path="/products" component={ProductsPage} />
-            <Route path="/categories" component={CategoriesPage} />
-            <Route path="/reports" component={ReportsPage} />
-            <Route path="/settings" component={SettingsPage} />
-            <Route path="/payments" component={PaymentsPage} />
-            <Route path="/deliveries/routes" component={RoutesPage} />
-            <Route path="/deliveries/drivers" component={DriversPage} />
-            <Route>404 Page Not Found</Route>
-          </>
-        )}
-      </Switch>
+        </Switch>
+      </div>
     </div>
   );
 }

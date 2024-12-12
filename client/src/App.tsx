@@ -1,10 +1,6 @@
-import { Switch, Route, Link } from "wouter";
-import { Sidebar } from "@/components/Sidebar";
-import DriversPage from "@/pages/DriversPage";
-import RoutesPage from "@/pages/RoutesPage";
-import AuthPage from "@/pages/AuthPage";
+import { Link } from "wouter";
 
-function DeliveryDashboard() {
+function App() {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6">Delivery Management</h1>
@@ -24,49 +20,6 @@ function DeliveryDashboard() {
           </Link>
         </div>
       </div>
-    </div>
-  );
-}
-
-function App() {
-  return (
-    <div className="flex min-h-screen">
-      <Switch>
-        <Route path="/auth">
-          <AuthPage />
-        </Route>
-        <Route>
-          <div className="flex w-full">
-            <Sidebar />
-            <main className="flex-1">
-              <Switch>
-                <Route path="/deliveries/drivers">
-                  <DriversPage />
-                </Route>
-                <Route path="/deliveries/routes">
-                  <RoutesPage />
-                </Route>
-                <Route path="/deliveries">
-                  <DeliveryDashboard />
-                </Route>
-                <Route path="/">
-                  <DeliveryDashboard />
-                </Route>
-                <Route>
-                  <div className="p-8">
-                    <h1 className="text-2xl font-bold">404 - Page Not Found</h1>
-                    <p className="mt-4">
-                      <Link href="/" className="text-primary hover:underline">
-                        Return to Dashboard
-                      </Link>
-                    </p>
-                  </div>
-                </Route>
-              </Switch>
-            </main>
-          </div>
-        </Route>
-      </Switch>
     </div>
   );
 }
