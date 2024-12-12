@@ -44,14 +44,29 @@ export default function ReportsPage() {
   });
 
   const upcomingDeliveries = orders?.filter((order: any) => {
-    const deliveryDate = new Date(order.deliveryDate);
-    const orderDate = new Date(filters.date);
+    // Ensure valid dates and add null checks
+    if (!order.deliveryDate) return false;
     
-    const matchesDate = deliveryDate.toISOString().split('T')[0] === filters.date;
-    const matchesTime = filters.deliveryTime === "all" || 
-                       order.deliveryTime?.toLowerCase() === filters.deliveryTime;
-    
-    return matchesDate && matchesTime;
+    try {
+      const deliveryDate = new Date(order.deliveryDate);
+      const filterDate = new Date(filters.date);
+      
+      // Compare dates using timestamp comparison
+      const sameDate = 
+        deliveryDate.getFullYear() === filterDate.getFullYear() &&
+        deliveryDate.getMonth() === filterDate.getMonth() &&
+        deliveryDate.getDate() === filterDate.getDate();
+      
+      const matchesTime = 
+        !order.deliveryTime || 
+        filters.deliveryTime === "all" || 
+        order.deliveryTime.toLowerCase() === filters.deliveryTime.toLowerCase();
+      
+      return sameDate && matchesTime;
+    } catch (e) {
+      console.error('Invalid date:', order.deliveryDate);
+      return false;
+    }
   }) || [];
 
   const handleExport = () => {
