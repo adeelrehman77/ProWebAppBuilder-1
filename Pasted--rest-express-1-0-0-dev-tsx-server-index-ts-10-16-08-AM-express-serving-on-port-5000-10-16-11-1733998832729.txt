@@ -1,0 +1,160 @@
+
+> rest-express@1.0.0 dev
+> tsx server/index.ts
+
+10:16:08 AM [express] serving on port 5000
+10:16:11 AM [express] GET /api/user 401 in 2ms :: {"error":"Not authenticated","message":"You must be…
+10:16:11 AM [express] GET /api/user 401 in 1ms :: {"error":"Not authenticated","message":"You must be…
+10:16:11 AM [express] GET /api/user 401 in 2ms :: {"error":"Not authenticated","message":"You must be…
+Attempting login for username: admin
+Password verification result: true
+10:17:53 AM [express] POST /api/login 200 in 981ms :: {"message":"Login successful","user":{"id":1,"u…
+10:17:54 AM [express] GET /api/user 304 in 241ms :: {"id":1,"username":"admin","password":"8c6976e5b5…
+10:17:54 AM [express] GET /api/deliveries 304 in 488ms :: [{"id":37,"orderId":43,"date":"2024-12-11T0…
+Error fetching zones: error: column "hub" does not exist
+    at file:///home/runner/ProWebAppBuilder-1/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at NeonPreparedQuery.execute (/home/runner/ProWebAppBuilder-1/node_modules/src/neon-serverless/session.ts:102:18)
+    at <anonymous> (/home/runner/ProWebAppBuilder-1/server/routes.ts:350:22) {
+  length: 103,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '22',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+10:17:57 AM [express] GET /api/zones 500 in 485ms :: {"error":"Failed to fetch zones"}
+Error creating zone: error: column "hub" of relation "zones" does not exist
+    at file:///home/runner/ProWebAppBuilder-1/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at NeonPreparedQuery.execute (/home/runner/ProWebAppBuilder-1/node_modules/src/neon-serverless/session.ts:102:18)
+    at <anonymous> (/home/runner/ProWebAppBuilder-1/server/routes.ts:360:22) {
+  length: 121,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '36',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_target.c',
+  line: '1066',
+  routine: 'checkInsertTargets'
+}
+10:18:35 AM [express] POST /api/zones 500 in 1200ms :: {"error":"Failed to create zone"}
+Error creating zone: error: column "hub" of relation "zones" does not exist
+    at file:///home/runner/ProWebAppBuilder-1/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at NeonPreparedQuery.execute (/home/runner/ProWebAppBuilder-1/node_modules/src/neon-serverless/session.ts:102:18)
+    at <anonymous> (/home/runner/ProWebAppBuilder-1/server/routes.ts:360:22) {
+  length: 121,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '36',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_target.c',
+  line: '1066',
+  routine: 'checkInsertTargets'
+}
+10:18:45 AM [express] POST /api/zones 500 in 1216ms :: {"error":"Failed to create zone"}
+10:18:53 AM [express] GET /api/products 304 in 1198ms :: [{"id":3,"name":"Non Veg Lunch","image":null…
+10:18:53 AM [express] GET /api/categories 304 in 1192ms :: [{"id":1,"name":"Lunch","image":"","active…
+10:18:57 AM [express] GET /api/user 304 in 237ms :: {"id":1,"username":"admin","password":"8c6976e5b5…
+Error fetching zones: error: column "hub" does not exist
+    at file:///home/runner/ProWebAppBuilder-1/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at NeonPreparedQuery.execute (/home/runner/ProWebAppBuilder-1/node_modules/src/neon-serverless/session.ts:102:18)
+    at <anonymous> (/home/runner/ProWebAppBuilder-1/server/routes.ts:350:22) {
+  length: 103,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '22',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+10:18:58 AM [express] GET /api/zones 500 in 473ms :: {"error":"Failed to fetch zones"}
+Error creating zone: error: column "hub" of relation "zones" does not exist
+    at file:///home/runner/ProWebAppBuilder-1/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at NeonPreparedQuery.execute (/home/runner/ProWebAppBuilder-1/node_modules/src/neon-serverless/session.ts:102:18)
+    at <anonymous> (/home/runner/ProWebAppBuilder-1/server/routes.ts:360:22) {
+  length: 121,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '36',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_target.c',
+  line: '1066',
+  routine: 'checkInsertTargets'
+}
+10:19:24 AM [express] POST /api/zones 500 in 1192ms :: {"error":"Failed to create zone"}
+Error creating zone: error: column "hub" of relation "zones" does not exist
+    at file:///home/runner/ProWebAppBuilder-1/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at NeonPreparedQuery.execute (/home/runner/ProWebAppBuilder-1/node_modules/src/neon-serverless/session.ts:102:18)
+    at <anonymous> (/home/runner/ProWebAppBuilder-1/server/routes.ts:360:22) {
+  length: 121,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '36',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_target.c',
+  line: '1066',
+  routine: 'checkInsertTargets'
+}
+10:19:47 AM [express] POST /api/zones 500 in 1201ms :: {"error":"Failed to create zone"}
