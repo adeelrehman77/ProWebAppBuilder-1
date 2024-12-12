@@ -24,9 +24,15 @@ const menuItems = [
   { icon: Grid, label: "Categories", href: "/categories" },
   { icon: Users, label: "Subscriptions", href: "/customers" },
   // Delivery Management
-  { icon: Truck, label: "Deliveries", href: "/deliveries" },
-  { icon: Map, label: "Routes", href: "/routes" },
-  { icon: UserCog, label: "Drivers", href: "/drivers" },
+  { 
+    icon: Truck, 
+    label: "Deliveries", 
+    href: "/deliveries",
+    submenu: [
+      { icon: Map, label: "Routes", href: "/deliveries/routes" },
+      { icon: UserCog, label: "Drivers", href: "/deliveries/drivers" }
+    ]
+  },
   { icon: CreditCard, label: "Payments", href: "/payments" },
   { icon: FileText, label: "Reports", href: "/reports" },
   { icon: Settings, label: "Settings", href: "/settings" },
