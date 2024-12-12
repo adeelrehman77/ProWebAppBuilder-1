@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import { createServer } from "http";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth } from "./auth";
@@ -10,109 +11,6 @@ import { sql } from "drizzle-orm";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
-
-// Basic middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-// Request logging middleware with detailed error logging
-app.use((req, res, next) => {
-  const start = Date.now();
-  const originalSend = res.send;
-  
-  res.send = function (body) {
-    if (res.statusCode >= 400) {
-      console.error(`Error response for ${req.method} ${req.path}:`, body);
-    }
-    return originalSend.call(this, body);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    console.log(`${req.method} ${req.path} ${res.statusCode} in ${duration}ms`);
-  });
-  
-  next();
-});
-
-// Setup authentication before registering routes
-setupAuth(app);
-
-// Register routes
-const server = registerRoutes(app);
-
-// Error handling middleware must be after routes
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('Error:', err);
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
-  const error = {
-    status,
-    message,
-    timestamp: new Date().toISOString()
-  };
-  console.error('Error details:', error);
-  res.status(status).json(error);
-});
-
-// Catch-all route for client-side routing in development
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    if (!req.path.startsWith('/api')) {
-      next();
-    } else {
-      res.status(404).json({ message: 'API endpoint not found' });
-    }
-  });
-}
-
-// Request logging middleware
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-      log(logLine);
-    }
-  });
-  next();
-});
-
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, "../client/dist")));
-}
-
-// Client-side routing handler - must be after API routes
-app.get('*', (req: Request, res: Response) => {
-  if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'), (err) => {
-      if (err) {
-        console.error('Error sending index.html:', err);
-        res.status(500).send('Error loading application');
-      }
-    });
-  }
-});
-
-// Database connection check
 async function checkDatabaseConnection() {
   try {
     await db.execute(sql`SELECT 1`);
@@ -124,8 +22,7 @@ async function checkDatabaseConnection() {
   }
 }
 
-// Setup and start server
-(async () => {
+async function initializeServer() {
   try {
     // Check database connection first
     const dbConnected = await checkDatabaseConnection();
@@ -133,17 +30,73 @@ async function checkDatabaseConnection() {
       throw new Error('Could not connect to database');
     }
 
-    // Setup Vite or static serving
+    // Create Express app
+    const app = express();
+    const server = createServer(app);
+
+    // Basic middleware
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: false }));
+
+    // Request logging
+    app.use((req, res, next) => {
+      const start = Date.now();
+      res.on("finish", () => {
+        const duration = Date.now() - start;
+        log(`${req.method} ${req.path} ${res.statusCode} in ${duration}ms`);
+      });
+      next();
+    });
+
+    // Setup authentication
+    setupAuth(app);
+
+    // Register API routes
+    registerRoutes(app);
+
+    // Development or Production setup
     if (app.get("env") === "development") {
       console.log('Setting up Vite in development mode...');
       await setupVite(app, server);
     } else {
       console.log('Setting up static serving in production mode...');
+      const staticPath = path.join(__dirname, "../client/dist");
+      app.use(express.static(staticPath));
       serveStatic(app);
     }
 
+    // API 404 handler
+    app.use('/api/*', (req, res) => {
+      res.status(404).json({ message: 'API endpoint not found' });
+    });
+
+    // Error handling
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      console.error('Error:', err);
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+      res.status(status).json({
+        status,
+        message,
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    // Client-side routing fallback
+    app.get('*', (req, res) => {
+      if (!req.path.startsWith('/api')) {
+        const indexPath = path.join(__dirname, '../client/dist/index.html');
+        res.sendFile(indexPath, (err) => {
+          if (err) {
+            console.error('Error sending index.html:', err);
+            res.status(500).send('Error loading application');
+          }
+        });
+      }
+    });
+
     // Start server
-    const PORT = process.env.PORT || 5000;
+    const PORT = parseInt(process.env.PORT || "5000", 10);
     server.listen(PORT, "0.0.0.0", () => {
       console.log('=================================');
       console.log(`Server running on port ${PORT}`);
@@ -151,6 +104,8 @@ async function checkDatabaseConnection() {
       console.log('Database: Connected');
       console.log('=================================');
     });
+
+    return server;
   } catch (error) {
     console.error('Server initialization failed:', error);
     if (error instanceof Error) {
@@ -159,4 +114,10 @@ async function checkDatabaseConnection() {
     }
     process.exit(1);
   }
-})();
+}
+
+// Start the server
+initializeServer().catch((error) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
+});

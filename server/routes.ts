@@ -42,9 +42,7 @@ const upload = multer({
   },
 });
 
-export function registerRoutes(app: Express) {
-  setupAuth(app);
-
+export function registerRoutes(app: Express): void {
   // Serve uploaded files
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
@@ -589,5 +587,4 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  return createServer(app);
-}
+  }
