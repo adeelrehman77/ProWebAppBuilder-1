@@ -37,9 +37,9 @@ export function Sidebar() {
   const { logout } = useUser();
 
   return (
-    <div className="flex flex-col h-screen w-64 bg-emerald-900 text-white">
+    <div className="flex flex-col h-screen w-64 bg-emerald-900">
       <div className="p-4 border-b border-emerald-800">
-        <h1 className="text-xl font-bold">Fun Adventure Kitchen</h1>
+        <h1 className="text-xl font-bold text-white">Fun Adventure Kitchen</h1>
       </div>
       
       <nav className="flex-1 p-4">
