@@ -318,6 +318,40 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Zones management
+  app.get("/api/zones", async (req, res) => {
+    try {
+      const result = await db.select().from(zones).orderBy(zones.name);
+      res.json(result);
+    } catch (error) {
+      console.error('Error fetching zones:', error);
+      res.status(500).json({ error: 'Failed to fetch zones' });
+    }
+  });
+
+  app.post("/api/zones", async (req, res) => {
+    try {
+      const result = await db.insert(zones).values(req.body).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error('Error creating zone:', error);
+      res.status(500).json({ error: 'Failed to create zone' });
+    }
+  });
+
+  app.put("/api/zones/:id", async (req, res) => {
+    try {
+      const result = await db
+        .update(zones)
+        .set(req.body)
+        .where(eq(zones.id, parseInt(req.params.id)))
+        .returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error('Error updating zone:', error);
+      res.status(500).json({ error: 'Failed to update zone' });
+    }
+  });
   const httpServer = createServer(app);
   // Routes management
   app.get("/api/routes", async (req, res) => {

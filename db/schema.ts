@@ -186,6 +186,23 @@ export const deliveriesRelations = relations(deliveries, ({ one }) => ({
   })
 }));
 
+// Zones management
+export const zones = pgTable("zones", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  hub: text("hub").notNull(),
+  areaPincode: text("area_pincode"),
+  areaPolygons: text("area_polygons"),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type Zone = typeof zones.$inferSelect;
+export type InsertZone = typeof zones.$inferInsert;
+
+export const insertZoneSchema = createInsertSchema(zones);
+export const selectZoneSchema = createSelectSchema(zones);
 export const subscriptions = pgTable("subscriptions", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
