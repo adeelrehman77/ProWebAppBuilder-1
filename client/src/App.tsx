@@ -13,6 +13,7 @@ import CustomerPage from "@/pages/CustomerPage";
 import PaymentsPage from "@/pages/PaymentsPage";
 import ReportsPage from "@/pages/ReportsPage";
 import SettingsPage from "@/pages/SettingsPage";
+import DriversPage from "@/pages/DriversPage";
 
 function App() {
   const { user, isLoading } = useUser();
@@ -41,6 +42,7 @@ function App() {
           <Route path="/products" component={ProductsPage} />
           <Route path="/categories" component={CategoriesPage} />
           <Route path="/customers" component={CustomerPage} />
+          <Route path="/drivers" component={DriversPage} />
           <Route path="/payments" component={PaymentsPage} />
           <Route path="/reports" component={ReportsPage} />
           <Route path="/settings" component={SettingsPage} />
