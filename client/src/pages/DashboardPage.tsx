@@ -75,12 +75,19 @@ export default function DashboardPage() {
               <CardTitle>Future Deliveries</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {futureDeliveries?.map((delivery) => (
-                  <div key={delivery.id} className="text-sm text-muted-foreground">
-                    {new Date(delivery.date).toLocaleDateString()} [{delivery.slot}]
-                  </div>
-                ))}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Lunch</span>
+                  <span className="text-2xl font-bold">
+                    {futureDeliveries?.filter(d => d.slot?.toLowerCase() === 'lunch').length || 0}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Dinner</span>
+                  <span className="text-2xl font-bold">
+                    {futureDeliveries?.filter(d => d.slot?.toLowerCase() === 'dinner').length || 0}
+                  </span>
+                </div>
               </div>
             </CardContent>
           </Card>
