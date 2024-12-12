@@ -1,57 +1,61 @@
-import { relations, sql } from "drizzle-orm";
-import { boolean, integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
+import { type InferModel } from "drizzle-orm";
 
-// Users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull(),
+  username: text("username").unique().notNull(),
   password: text("password").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Categories table
 export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  description: text("description"),
-  orderIndex: integer("order_index").notNull().default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  image: text("image"),
+  active: boolean("active").default(true),
+  orderIndex: integer("order_index").default(0),
 });
 
-// Products table
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  description: text("description"),
+  image: text("image"),
+  brand: text("brand"),
   categoryId: integer("category_id").references(() => categories.id),
   price: integer("price").notNull(),
-  image: text("image"),
   active: boolean("active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  stockQuantity: integer("stock_quantity").notNull().default(0),
+  minStockLevel: integer("min_stock_level").notNull().default(0),
+  unit: text("unit").notNull().default('units'),
+  sku: text("sku").unique(),
 });
 
-// Zones table
-export const zones = pgTable("zones", {
+export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  active: boolean("active").default(true),
-  color: text("color").notNull().default('#3B82F6'), // Color for map visualization
+  userId: integer("user_id").references(() => users.id),
+  status: text("status").notNull(), // Pending/Confirmed/Delivered/Cancelled
+  totalAmount: integer("total_amount").notNull(),
+  paymentStatus: text("payment_status").notNull().default('Pending'), // Pending/Partial/Paid/Refunded
+  paymentMethod: text("payment_method"), // Cash/Card/UPI
+  paidAmount: integer("paid_amount").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Routes table
+export const orderItems = pgTable("order_items", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").references(() => orders.id),
+  productId: integer("product_id").references(() => products.id),
+  quantity: integer("quantity").notNull(),
+  price: integer("price").notNull(),
+});
+
 export const routes = pgTable("routes", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
-  zoneId: integer("zone_id").references(() => zones.id),
+  areas: text("areas").notNull(), // Comma-separated areas covered
   estimatedTime: integer("estimated_time").notNull(), // In minutes
   maxDeliveries: integer("max_deliveries").notNull().default(20),
   active: boolean("active").default(true),
@@ -61,42 +65,24 @@ export const routes = pgTable("routes", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Drivers table
 export const drivers = pgTable("drivers", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   phone: text("phone").notNull(),
   email: text("email"),
-  vehicleType: text("vehicle_type"),
-  vehicleNumber: text("vehicle_number"),
-  licenseNumber: text("license_number"),
-  status: text("status").notNull().default('available'), // available, on_delivery, offline
+  licenseNumber: text("license_number").notNull(),
+  vehicleNumber: text("vehicle_number").notNull(),
+  vehicleType: text("vehicle_type").notNull(),
+  maxCapacity: integer("max_capacity").notNull().default(50),
+  active: boolean("active").default(true),
+  status: text("status").notNull().default('available'), // available, on_delivery, off_duty
   currentLocation: text("current_location"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Orders table
-export const orders = pgTable("orders", {
-  id: serial("id").primaryKey(),
-  status: text("status").notNull(),
-  totalAmount: integer("total_amount").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Order Items table
-export const orderItems = pgTable("order_items", {
-  id: serial("id").primaryKey(),
-  orderId: integer("order_id").references(() => orders.id),
-  productId: integer("product_id").references(() => products.id),
-  quantity: integer("quantity").notNull(),
-  price: integer("price").notNull(),
-});
-
-// Deliveries table
 export const deliveries = pgTable("deliveries", {
-  id: serial("id").primaryKey(),
+  id: serial("id").primaryKey(), 
   orderId: integer("order_id").references(() => orders.id),
   routeId: integer("route_id").references(() => routes.id),
   driverId: integer("driver_id").references(() => drivers.id),
@@ -134,15 +120,9 @@ export const selectDriverSchema = createSelectSchema(drivers);
 export const insertDeliverySchema = createInsertSchema(deliveries);
 export const selectDeliverySchema = createSelectSchema(deliveries);
 
-export const insertZoneSchema = createInsertSchema(zones);
-export const selectZoneSchema = createSelectSchema(zones);
-
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
-
-export type Zone = typeof zones.$inferSelect;
-export type InsertZone = typeof zones.$inferInsert;
 
 export type Route = typeof routes.$inferSelect;
 export type InsertRoute = typeof routes.$inferInsert;
@@ -166,17 +146,7 @@ export type Delivery = typeof deliveries.$inferSelect;
 export type InsertDelivery = typeof deliveries.$inferInsert;
 
 // Define relations
-export const categoriesRelations = relations(categories, ({ many }) => ({
-  products: many(products),
-}));
-
-export const productsRelations = relations(products, ({ one }) => ({
-  category: one(categories, {
-    fields: [products.categoryId],
-    references: [categories.id],
-  }),
-}));
-
+// Define relations
 export const ordersRelations = relations(orders, ({ many }) => ({
   deliveries: many(deliveries),
   items: many(orderItems)
@@ -193,16 +163,8 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
   })
 }));
 
-export const zonesRelations = relations(zones, ({ many }) => ({
-  routes: many(routes)
-}));
-
-export const routesRelations = relations(routes, ({ many, one }) => ({
-  deliveries: many(deliveries),
-  zone: one(zones, {
-    fields: [routes.zoneId],
-    references: [zones.id],
-  })
+export const routesRelations = relations(routes, ({ many }) => ({
+  deliveries: many(deliveries)
 }));
 
 export const driversRelations = relations(drivers, ({ many }) => ({
@@ -223,3 +185,32 @@ export const deliveriesRelations = relations(deliveries, ({ one }) => ({
     references: [orders.id],
   })
 }));
+
+export const subscriptions = pgTable("subscriptions", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  contactNumber: text("contact_number").notNull(),
+  address: text("address").notNull(),
+  location: text("location").notNull(),
+  buildingName: text("building_name").notNull(),
+  flatNumber: text("flat_number").notNull(),
+  paymentMode: text("payment_mode").notNull(),
+  status: text("status").notNull().default('pending'), // pending, approved, rejected
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const subscriptionItems = pgTable("subscription_items", {
+  id: serial("id").primaryKey(),
+  subscriptionId: integer("subscription_id").references(() => subscriptions.id),
+  productId: integer("product_id").references(() => products.id),
+  quantity: integer("quantity").notNull(),
+});
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = typeof subscriptions.$inferInsert;
+
+export type SubscriptionItem = typeof subscriptionItems.$inferSelect;
+export type InsertSubscriptionItem = typeof subscriptionItems.$inferInsert;

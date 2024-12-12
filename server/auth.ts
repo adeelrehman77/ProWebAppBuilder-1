@@ -4,15 +4,7 @@ import { type Express } from "express";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import { createHash } from "crypto";
-import { users } from "@db/schema";
-import { z } from "zod";
-
-const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
-});
-
-type LoginUser = z.infer<typeof loginSchema>;
+import { users, insertUserSchema } from "@db/schema";
 import { db } from "../db";
 import { eq } from "drizzle-orm";
 
@@ -32,7 +24,7 @@ const crypto = {
 export function setupAuth(app: Express) {
   const MemoryStore = createMemoryStore(session);
 
-  const sessionConfig = {
+  app.use(session({
     secret: process.env.REPL_ID || 'restaurant-management-system',
     resave: false,
     saveUninitialized: false,
@@ -41,40 +33,22 @@ export function setupAuth(app: Express) {
     }),
     cookie: { 
       secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
-  };
-
-  if (process.env.NODE_ENV === 'development') {
-    sessionConfig.cookie.secure = false;
-  }
-
-  app.use(session(sessionConfig));
+  }));
 
   app.use(passport.initialize());
   app.use(passport.session());
 
   passport.use(new LocalStrategy(async (username, password, done) => {
     try {
-      if (!username || !password) {
-        return done(null, false, { message: "Username and password are required" });
-      }
-
       console.log('Attempting login for username:', username);
       
-      let user;
-      try {
-        [user] = await db
-          .select()
-          .from(users)
-          .where(eq(users.username, username))
-          .limit(1);
-      } catch (dbError) {
-        console.error('Database error during authentication:', dbError);
-        return done(null, false, { message: "Authentication service temporarily unavailable" });
-      }
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.username, username))
+        .limit(1);
 
       if (!user) {
         console.log('User not found');
@@ -91,7 +65,7 @@ export function setupAuth(app: Express) {
       return done(null, user);
     } catch (err) {
       console.error('Authentication error:', err);
-      return done(null, false, { message: "Authentication failed" });
+      return done(err);
     }
   }));
 
@@ -113,15 +87,13 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    const result = loginSchema.safeParse(req.body);
+    const result = insertUserSchema.safeParse(req.body);
     if (!result.success) {
       return res.status(400).json({
         error: "Validation failed",
         message: result.error.issues.map(i => i.message).join(", ")
       });
     }
-
-    const validatedData = result.data;
 
     passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) {
