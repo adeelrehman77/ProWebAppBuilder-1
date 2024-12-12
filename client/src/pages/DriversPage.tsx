@@ -62,36 +62,7 @@ export default function DriversPage() {
         throw new Error('Failed to fetch drivers');
       }
       return response.json() as Promise<Driver[]>;
-    },
-const onSubmit = (data: DriverFormData) => {
-  if (editingDriver) {
-    updateDriverMutation.mutate({ ...data, id: editingDriver.id });
-  } else {
-    addDriverMutation.mutate(data);
-  }
-};
-
-const handleDialogChange = (open: boolean) => {
-  setIsAddDialogOpen(open);
-  if (!open) {
-    setEditingDriver(null);
-    form.reset();
-  }
-};
-
-const handleEdit = (driver: Driver) => {
-  setEditingDriver(driver);
-  form.reset({
-    name: driver.name,
-    phone: driver.phone,
-    email: driver.email || "",
-    licenseNumber: driver.licenseNumber,
-    vehicleNumber: driver.vehicleNumber,
-    vehicleType: driver.vehicleType,
-    maxCapacity: driver.maxCapacity,
-  });
-  setIsAddDialogOpen(true);
-};
+    }
   });
 
   const addDriverMutation = useMutation({
@@ -158,6 +129,36 @@ const handleEdit = (driver: Driver) => {
       });
     },
   });
+
+  const onSubmit = (data: DriverFormData) => {
+    if (editingDriver) {
+      updateDriverMutation.mutate({ ...data, id: editingDriver.id });
+    } else {
+      addDriverMutation.mutate(data);
+    }
+  };
+
+  const handleDialogChange = (open: boolean) => {
+    setIsAddDialogOpen(open);
+    if (!open) {
+      setEditingDriver(null);
+      form.reset();
+    }
+  };
+
+  const handleEdit = (driver: Driver) => {
+    setEditingDriver(driver);
+    form.reset({
+      name: driver.name,
+      phone: driver.phone,
+      email: driver.email || "",
+      licenseNumber: driver.licenseNumber,
+      vehicleNumber: driver.vehicleNumber,
+      vehicleType: driver.vehicleType,
+      maxCapacity: driver.maxCapacity,
+    });
+    setIsAddDialogOpen(true);
+  };
 
   if (isLoading) {
     return <div className="p-8">Loading...</div>;
@@ -308,7 +309,7 @@ const handleEdit = (driver: Driver) => {
                       onClick={() => {
                         window.open(
                           `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                            driver.currentLocation
+                            driver.currentLocation || ""
                           )}`,
                           '_blank'
                         );
