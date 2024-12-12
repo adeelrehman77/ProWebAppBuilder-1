@@ -1,6 +1,4 @@
 import { type Express } from "express";
-import { createServer } from "http";
-import { setupAuth } from "./auth";
 import { db } from "../db";
 import { 
   categories, products, deliveries, orders, orderItems, 
@@ -11,6 +9,10 @@ import multer from "multer";
 import path from "path";
 import express from "express";
 import fs from "fs";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Ensure uploads directory exists with absolute path
 const uploadsDir = path.join(process.cwd(), "uploads");

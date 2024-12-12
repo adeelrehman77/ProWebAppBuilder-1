@@ -1,12 +1,13 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { setupVite, log } from "./vite";
 import { setupAuth } from "./auth";
 import path from "path";
 import { fileURLToPath } from 'url';
 import { db } from "../db";
 import { sql } from "drizzle-orm";
+import { mkdir } from "fs/promises";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,19 +19,35 @@ async function checkDatabaseConnection() {
     return true;
   } catch (error) {
     console.error('Database connection failed:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+      console.error('Stack trace:', error.stack);
+    }
     return false;
   }
 }
 
 async function initializeServer() {
   try {
+    // Ensure uploads directory exists
+    const uploadsDir = path.join(process.cwd(), "uploads");
+    try {
+      await mkdir(uploadsDir, { recursive: true });
+      console.log('Uploads directory ready:', uploadsDir);
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== 'EEXIST') {
+        console.error('Error creating uploads directory:', err);
+        throw err;
+      }
+    }
+
     // Check database connection first
     const dbConnected = await checkDatabaseConnection();
     if (!dbConnected) {
       throw new Error('Could not connect to database');
     }
 
-    // Create Express app
+    // Create Express app and server
     const app = express();
     const server = createServer(app);
 
@@ -51,21 +68,16 @@ async function initializeServer() {
     // Setup authentication
     setupAuth(app);
 
-    // Register API routes
-    registerRoutes(app);
-
-    // Development or Production setup
+    // Development setup (must be before API routes for HMR to work)
     if (app.get("env") === "development") {
       console.log('Setting up Vite in development mode...');
       await setupVite(app, server);
-    } else {
-      console.log('Setting up static serving in production mode...');
-      const staticPath = path.join(__dirname, "../client/dist");
-      app.use(express.static(staticPath));
-      serveStatic(app);
     }
 
-    // API 404 handler
+    // Register API routes after Vite middleware in dev mode
+    registerRoutes(app);
+
+    // API 404 handler (must be after routes but before final handler)
     app.use('/api/*', (req, res) => {
       res.status(404).json({ message: 'API endpoint not found' });
     });
@@ -82,18 +94,19 @@ async function initializeServer() {
       });
     });
 
-    // Client-side routing fallback
-    app.get('*', (req, res) => {
-      if (!req.path.startsWith('/api')) {
-        const indexPath = path.join(__dirname, '../client/dist/index.html');
-        res.sendFile(indexPath, (err) => {
-          if (err) {
-            console.error('Error sending index.html:', err);
-            res.status(500).send('Error loading application');
-          }
-        });
-      }
-    });
+    // Static file serving and client routing (production only)
+    if (app.get("env") === "production") {
+      console.log('Setting up static serving in production mode...');
+      const staticPath = path.join(__dirname, "../client/dist");
+      app.use(express.static(staticPath));
+
+      // Client-side routing fallback (must be last)
+      app.get('*', (req, res) => {
+        if (!req.path.startsWith('/api')) {
+          res.sendFile(path.join(staticPath, 'index.html'));
+        }
+      });
+    }
 
     // Start server
     const PORT = parseInt(process.env.PORT || "5000", 10);
