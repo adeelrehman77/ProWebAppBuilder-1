@@ -39,10 +39,12 @@ export default function SubscriptionsPage() {
 
   const [formData, setFormData] = useState({
     name: "",
-    phone: "",
-    route: "",
-    subscriptionType: "daily",
-    mealPreference: "veg",
+    contactNumber: "",
+    address: "",
+    location: "",
+    buildingName: "",
+    flatNumber: "",
+    paymentMode: "cash",
     startDate: "",
     endDate: "",
     products: [] as { id: number; quantity: number }[],
@@ -88,10 +90,12 @@ export default function SubscriptionsPage() {
       toast({ title: "Subscription created successfully" });
       setFormData({
         name: "",
-        phone: "",
-        route: "",
-        subscriptionType: "daily",
-        mealPreference: "veg",
+        contactNumber: "",
+        address: "",
+        location: "",
+        buildingName: "",
+        flatNumber: "",
+        paymentMode: "cash",
         startDate: "",
         endDate: "",
         products: [],
@@ -150,37 +154,64 @@ export default function SubscriptionsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
+                  <Label htmlFor="contactNumber">Contact Number</Label>
                   <Input
-                    id="phone"
+                    id="contactNumber"
                     type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    value={formData.contactNumber}
+                    onChange={(e) => setFormData(prev => ({ ...prev, contactNumber: e.target.value }))}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="route">Delivery Route/Area</Label>
+                  <Label htmlFor="address">Address</Label>
                   <Input
-                    id="route"
-                    value={formData.route}
-                    onChange={(e) => setFormData(prev => ({ ...prev, route: e.target.value }))}
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="subscriptionType">Subscription Type</Label>
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="buildingName">Building Name</Label>
+                  <Input
+                    id="buildingName"
+                    value={formData.buildingName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, buildingName: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="flatNumber">Flat Number</Label>
+                  <Input
+                    id="flatNumber"
+                    value={formData.flatNumber}
+                    onChange={(e) => setFormData(prev => ({ ...prev, flatNumber: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="paymentMode">Payment Mode</Label>
                   <Select
-                    value={formData.subscriptionType}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, subscriptionType: value }))}
+                    value={formData.paymentMode}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMode: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="cash">Cash</SelectItem>
+                      <SelectItem value="card">Card</SelectItem>
+                      <SelectItem value="upi">UPI</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
