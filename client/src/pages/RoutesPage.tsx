@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, Pencil, Trash2 } from "lucide-react";
 import { AddRouteDialog } from "@/components/routes/AddRouteDialog";
 import { Button } from "@/components/ui/button";
-import { Sidebar } from "@/components/Sidebar";
+
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import {

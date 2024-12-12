@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sidebar } from "@/components/Sidebar";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -181,9 +181,7 @@ export default function ProductsPage() {
   });
 
   return (
-    <>
-      <Sidebar />
-      <div className="flex-1 p-8">
+    <div className="p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Products</h1>
           <div className="flex gap-2">
@@ -432,6 +430,5 @@ export default function ProductsPage() {
           </TableBody>
         </Table>
       </div>
-    </>
   );
 }

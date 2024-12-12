@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Search, Pencil, Trash2 } from "lucide-react";
 import { AddZoneDialog } from "@/components/zones/AddZoneDialog";
 import { Button } from "@/components/ui/button";
-import { Sidebar } from "@/components/Sidebar";
+
 import { DataTable } from "@/components/ui/data-table";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
@@ -145,9 +145,7 @@ export default function ZonesPage() {
   const uniqueHubs = ["All", ...new Set(zones?.map((zone: Zone) => zone.hub) || [])];
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar />
-      <div className="flex-1 p-8 overflow-auto">
+    <div className="h-screen bg-gray-100 p-8 overflow-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Zones</h1>
@@ -191,7 +189,6 @@ export default function ZonesPage() {
             isLoading={isLoading}
           />
         </div>
-      </div>
     </div>
   );
 }
