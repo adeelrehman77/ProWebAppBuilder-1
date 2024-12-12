@@ -43,31 +43,29 @@ export default function ReportsPage() {
     expectedOnly: true
   });
 
-  const upcomingDeliveries = orders?.filter((order: any) => {
-    // Ensure valid dates and add null checks
-    if (!order.deliveryDate) return false;
-    
-    try {
-      const deliveryDate = new Date(order.deliveryDate);
-      const filterDate = new Date(filters.date);
-      
-      // Compare dates using timestamp comparison
-      const sameDate = 
-        deliveryDate.getFullYear() === filterDate.getFullYear() &&
-        deliveryDate.getMonth() === filterDate.getMonth() &&
-        deliveryDate.getDate() === filterDate.getDate();
-      
-      const matchesTime = 
-        !order.deliveryTime || 
-        filters.deliveryTime === "all" || 
-        order.deliveryTime.toLowerCase() === filters.deliveryTime.toLowerCase();
-      
-      return sameDate && matchesTime;
-    } catch (e) {
-      console.error('Invalid date:', order.deliveryDate);
-      return false;
-    }
-  }) || [];
+  const upcomingDeliveries = orders?.filter(order => 
+    order.deliveries?.some(d => {
+      try {
+        const deliveryDate = new Date(d.date);
+        const filterDate = new Date(filters.date);
+        
+        // Compare dates using timestamp comparison
+        const sameDate = 
+          deliveryDate.getFullYear() === filterDate.getFullYear() &&
+          deliveryDate.getMonth() === filterDate.getMonth() &&
+          deliveryDate.getDate() === filterDate.getDate();
+        
+        const matchesTime = 
+          filters.deliveryTime === "all" || 
+          d.slot.toLowerCase() === filters.deliveryTime;
+        
+        return sameDate && matchesTime;
+      } catch (e) {
+        console.error('Invalid date:', d.date);
+        return false;
+      }
+    })
+  ) || [];
 
   const handleExport = () => {
     // TODO: Implement export functionality
@@ -261,13 +259,20 @@ export default function ReportsPage() {
                   {upcomingDeliveries.map((order: any) => (
                     <div key={order.id} className="flex justify-between items-center p-2 border rounded">
                       <div>
-                        <span className="font-medium">{order.customerName}</span>
-                        <span className="text-sm text-muted-foreground ml-2">
-                          [{order.deliveryTime}]
-                        </span>
+                        <div className="font-medium">Order #{order.id}</div>
+                        {order.deliveries?.filter(d => {
+                          const deliveryDate = new Date(d.date);
+                          const filterDate = new Date(filters.date);
+                          return deliveryDate.toDateString() === filterDate.toDateString() &&
+                                 d.slot.toLowerCase() === filters.deliveryTime;
+                        }).map((delivery: any) => (
+                          <div key={delivery.id} className="text-sm text-muted-foreground">
+                            [{delivery.slot}] - {delivery.status}
+                          </div>
+                        ))}
                       </div>
                       <div className="text-sm">
-                        {order.quantity} Units
+                        {order.items?.reduce((total: number, item: any) => total + item.quantity, 0)} Units
                       </div>
                     </div>
                   ))}
