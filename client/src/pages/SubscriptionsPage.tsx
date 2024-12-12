@@ -74,8 +74,11 @@ export default function SubscriptionsPage() {
     try {
       // Create subscription with items
       // Ensure dates are valid before creating the subscription
-      const startDate = new Date(formData.startDate + 'T00:00:00Z');
-      const endDate = new Date(formData.endDate + 'T00:00:00Z');
+      // Convert dates to UTC midnight to avoid timezone issues
+      const startDate = new Date(formData.startDate);
+      startDate.setUTCHours(0, 0, 0, 0);
+      const endDate = new Date(formData.endDate);
+      endDate.setUTCHours(0, 0, 0, 0);
       
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
         toast({
