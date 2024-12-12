@@ -266,11 +266,38 @@ export function registerRoutes(app: Express) {
 
   app.put("/api/deliveries/:id", async (req, res) => {
     try {
+      const { routeId, driverId, status } = req.body;
+      const updateData: any = { ...req.body };
+
+      // If assigning a route or driver, update assigned_at
+      if (routeId || driverId) {
+        updateData.assignedAt = new Date();
+      }
+
+      // Update status timestamps
+      if (status === 'InProgress') {
+        updateData.startedAt = new Date();
+      } else if (status === 'Completed') {
+        updateData.completedAt = new Date();
+      }
+
       const result = await db
         .update(deliveries)
-        .set(req.body)
+        .set(updateData)
         .where(eq(deliveries.id, parseInt(req.params.id)))
         .returning();
+
+      // Update driver status if necessary
+      if (driverId) {
+        await db
+          .update(drivers)
+          .set({ 
+            status: status === 'Completed' ? 'available' : 'on_delivery',
+            currentLocation: status === 'Completed' ? null : req.body.currentLocation
+          })
+          .where(eq(drivers.id, driverId));
+      }
+
       res.json(result[0]);
     } catch (error) {
       console.error('Error updating delivery:', error);

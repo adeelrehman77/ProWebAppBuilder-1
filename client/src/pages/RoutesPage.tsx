@@ -3,6 +3,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -55,6 +64,62 @@ export default function RoutesPage() {
   });
 
   const { data: routes, isLoading } = useQuery({
+  const { data: deliveries } = useQuery({
+    queryKey: ['/api/deliveries'],
+    queryFn: async () => {
+      const response = await fetch('/api/deliveries');
+      if (!response.ok) {
+        throw new Error('Failed to fetch deliveries');
+      }
+      return response.json();
+    },
+  });
+
+  const { data: availableDrivers } = useQuery({
+    queryKey: ['/api/drivers'],
+    queryFn: async () => {
+      const response = await fetch('/api/drivers');
+      if (!response.ok) {
+        throw new Error('Failed to fetch drivers');
+      }
+      return response.json();
+    },
+  });
+
+  const assignDeliveryMutation = useMutation({
+    mutationFn: async ({ deliveryId, routeId, driverId }) => {
+      const response = await fetch(`/api/deliveries/${deliveryId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          routeId,
+          driverId,
+          status: 'Assigned',
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to assign delivery');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/deliveries'] });
+      setIsAssignDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Delivery assigned successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    },
+  });
     queryKey: ['/api/routes'],
     queryFn: async () => {
       const response = await fetch('/api/routes');
@@ -259,55 +324,98 @@ export default function RoutesPage() {
         </Dialog>
       </div>
 
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Areas</TableHead>
-              <TableHead>Estimated Time</TableHead>
-              <TableHead>Max Deliveries</TableHead>
-              <TableHead>Start Location</TableHead>
-              <TableHead>End Location</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {routes?.map((route) => (
-              <TableRow key={route.id}>
-                <TableCell>{route.name}</TableCell>
-                <TableCell>{route.areas}</TableCell>
-                <TableCell>{route.estimatedTime} minutes</TableCell>
-                <TableCell>{route.maxDeliveries}</TableCell>
-                <TableCell>{route.startLocation}</TableCell>
-                <TableCell>{route.endLocation}</TableCell>
-                <TableCell className="space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEdit(route)}
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      window.open(
-                        `https://www.google.com/maps/dir/${encodeURIComponent(
-                          route.startLocation
-                        )}/${encodeURIComponent(route.endLocation)}`,
-                        '_blank'
-                      );
-                    }}
-                  >
-                    <MapPin className="w-4 h-4" />
-                  </Button>
-                </TableCell>
+      <div className="space-y-6">
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Areas</TableHead>
+                <TableHead>Estimated Time</TableHead>
+                <TableHead>Max Deliveries</TableHead>
+                <TableHead>Start Location</TableHead>
+                <TableHead>End Location</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {routes?.map((route) => (
+                <TableRow key={route.id}>
+                  <TableCell>{route.name}</TableCell>
+                  <TableCell>{route.areas}</TableCell>
+                  <TableCell>{route.estimatedTime} minutes</TableCell>
+                  <TableCell>{route.maxDeliveries}</TableCell>
+                  <TableCell>{route.startLocation}</TableCell>
+                  <TableCell>{route.endLocation}</TableCell>
+                  <TableCell className="space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEdit(route)}
+                      title="Edit Route"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        window.open(
+                          `https://www.google.com/maps/dir/${encodeURIComponent(
+                            route.startLocation
+                          )}/${encodeURIComponent(route.endLocation)}`,
+                          '_blank'
+                        );
+                      }}
+                      title="View on Map"
+                    >
+                      <MapPin className="w-4 h-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Pending Deliveries Section */}
+        <div className="border rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">Pending Deliveries</h2>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order ID</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Slot</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Assigned Route</TableHead>
+                <TableHead>Assigned Driver</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {deliveries?.filter(d => d.status === 'Pending').map((delivery) => (
+                <TableRow key={delivery.id}>
+                  <TableCell>#{delivery.orderId}</TableCell>
+                  <TableCell>{new Date(delivery.date).toLocaleDateString()}</TableCell>
+                  <TableCell>{delivery.slot}</TableCell>
+                  <TableCell>{delivery.status}</TableCell>
+                  <TableCell>{delivery.route?.name || 'Not Assigned'}</TableCell>
+                  <TableCell>{delivery.driver?.name || 'Not Assigned'}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAssignDelivery(delivery)}
+                    >
+                      Assign
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );
