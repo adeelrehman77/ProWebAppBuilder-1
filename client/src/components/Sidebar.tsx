@@ -38,40 +38,94 @@ export function Sidebar() {
   const { logout } = useUser();
 
   return (
-    <div className="flex flex-col h-screen w-64 bg-emerald-800 text-white">
+    <div className="flex flex-col h-screen w-64 bg-emerald-800 text-emerald-50">
       <div className="p-4 border-b border-emerald-700">
-        <h1 className="text-xl font-bold">Fun Adventure Kitchen</h1>
+        <h1 className="text-xl font-bold text-white">Fun Adventure Kitchen</h1>
       </div>
       
       <nav className="flex-1 p-4">
-        <ul className="space-y-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <li key={item.href}>
-                <Link href={item.href}>
-                  <a
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-                      location === item.href
-                        ? "bg-emerald-900 text-white"
-                        : "hover:bg-emerald-700"
-                    )}
-                  >
-                    <Icon className="h-5 w-5" />
-                    {item.label}
-                  </a>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="space-y-6">
+          {/* Main Navigation */}
+          <ul className="space-y-1">
+            {menuItems.slice(0, 5).map((item) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.href}>
+                  <Link href={item.href}>
+                    <a
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-emerald-100",
+                        location === item.href
+                          ? "bg-emerald-700 text-white font-medium"
+                          : "hover:bg-emerald-700/50 hover:text-white"
+                      )}
+                    >
+                      <Icon className="h-5 w-5" />
+                      {item.label}
+                    </a>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Delivery Management Section */}
+          <div>
+            <h2 className="mb-2 px-3 text-sm font-semibold text-emerald-200">Delivery Management</h2>
+            <ul className="space-y-1">
+              {menuItems.slice(5, 9).map((item) => {
+                const Icon = item.icon;
+                return (
+                  <li key={item.href}>
+                    <Link href={item.href}>
+                      <a
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-emerald-100",
+                          location === item.href
+                            ? "bg-emerald-700 text-white font-medium"
+                            : "hover:bg-emerald-700/50 hover:text-white"
+                        )}
+                      >
+                        <Icon className="h-5 w-5" />
+                        {item.label}
+                      </a>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* Settings & Reports */}
+          <ul className="space-y-1">
+            {menuItems.slice(9).map((item) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.href}>
+                  <Link href={item.href}>
+                    <a
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-emerald-100",
+                        location === item.href
+                          ? "bg-emerald-700 text-white font-medium"
+                          : "hover:bg-emerald-700/50 hover:text-white"
+                      )}
+                    >
+                      <Icon className="h-5 w-5" />
+                      {item.label}
+                    </a>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </nav>
 
       <div className="p-4 border-t border-emerald-700">
         <Button
           variant="ghost"
-          className="w-full justify-start text-white hover:bg-emerald-700"
+          className="w-full justify-start text-emerald-100 hover:bg-emerald-700/50 hover:text-white"
           onClick={() => logout()}
         >
           <LogOut className="mr-2 h-5 w-5" />
