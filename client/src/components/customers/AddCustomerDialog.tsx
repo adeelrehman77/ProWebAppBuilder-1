@@ -39,13 +39,20 @@ export function AddCustomerDialog() {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error("Failed to add customer");
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error);
+      }
+
+      const newCustomer = await response.json();
+      console.log('New customer added:', newCustomer);
 
       toast({ title: "Customer added successfully" });
       setOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      await queryClient.invalidateQueries({ queryKey: ["customers"] });
       setFormData({ name: "", phone: "", route: "", isActive: true });
     } catch (error) {
+      console.error('Error adding customer:', error);
       toast({
         variant: "destructive",
         title: "Error adding customer",

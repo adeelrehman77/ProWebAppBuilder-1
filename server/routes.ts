@@ -678,31 +678,30 @@ export function registerRoutes(app: Express) {
   });
 
   // Customers management
-  app.post("/api/customers/bulk-upload", upload.single("file"), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
-      }
-
-      // Process the Excel file and save customers
-      // For now, just return success
-      res.json({ message: "Customers uploaded successfully" });
-    } catch (error) {
-      console.error('Error uploading customers:', error);
-      res.status(500).json({ error: 'Failed to upload customers' });
+  // In-memory storage for customers (temporary solution)
+  let customers = [
+    {
+      id: 1,
+      name: "Akash Kiran",
+      phone: "91860 6862798",
+      balance: 0.00,
+      isActive: true,
+      route: "Bur Dubai",
+      registeredOn: "2024-12-12T17:45:00.000Z"
     }
-  });
+  ];
 
   app.post("/api/customers", async (req, res) => {
     try {
-      // Create a new customer
-      // For now, just return mock data
       const newCustomer = {
         id: Date.now(),
         ...req.body,
         balance: 0.00,
         registeredOn: new Date().toISOString()
       };
+      
+      customers.push(newCustomer);
+      console.log('Added new customer:', newCustomer);
       res.json(newCustomer);
     } catch (error) {
       console.error('Error creating customer:', error);
@@ -712,19 +711,7 @@ export function registerRoutes(app: Express) {
 
   app.get("/api/customers", async (req, res) => {
     try {
-      // For now, returning mock data
-      const mockCustomers = [
-        {
-          id: 1,
-          name: "Akash Kiran",
-          phone: "91860 6862798",
-          balance: 0.00,
-          isActive: true,
-          route: "Bur Dubai",
-          registeredOn: "2024-12-12T17:45:00.000Z"
-        }
-      ];
-      res.json(mockCustomers);
+      res.json(customers);
     } catch (error) {
       console.error('Error fetching customers:', error);
       res.status(500).json({ error: 'Failed to fetch customers' });
