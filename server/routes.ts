@@ -396,10 +396,11 @@ export function registerRoutes(app: Express) {
         .select({
           id: deliveries.id,
           orderId: deliveries.orderId,
+          routeId: deliveries.routeId,
+          driverId: deliveries.driverId,
           date: deliveries.date,
           slot: deliveries.slot,
           status: deliveries.status,
-          notes: deliveries.notes,
           assignedAt: deliveries.assignedAt,
           startedAt: deliveries.startedAt,
           completedAt: deliveries.completedAt,
