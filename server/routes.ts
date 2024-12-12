@@ -149,20 +149,42 @@ export function registerRoutes(app: Express) {
         .leftJoin(deliveries, eq(deliveries.orderId, orders.id))
         .orderBy(orders.createdAt);
 
-      const ordersWithDetails = result.reduce((acc, curr) => {
+      type OrderWithDetails = {
+        id: number;
+        status: string;
+        totalAmount: number;
+        createdAt: Date | null;
+        items: Array<{
+          id: number;
+          productId: number | null;
+          quantity: number;
+          price: number;
+        }>;
+        deliveries: Array<{
+          id: number;
+          date: Date;
+          slot: string;
+          status: string;
+        }>;
+      };
+
+      const ordersWithDetails = result.reduce<OrderWithDetails[]>((acc, curr) => {
         const existingOrder = acc.find(o => o.id === curr.id);
         if (existingOrder) {
-          if (curr.items?.id && !existingOrder.items.find(i => i.id === curr.items.id)) {
+          if (curr.items && !existingOrder.items.some(i => i.id === curr.items.id)) {
             existingOrder.items.push(curr.items);
           }
-          if (curr.deliveries?.id && !existingOrder.deliveries.find(d => d.id === curr.deliveries.id)) {
+          if (curr.deliveries && !existingOrder.deliveries.some(d => d.id === curr.deliveries.id)) {
             existingOrder.deliveries.push(curr.deliveries);
           }
         } else {
           acc.push({
-            ...curr,
-            items: curr.items?.id ? [curr.items] : [],
-            deliveries: curr.deliveries?.id ? [curr.deliveries] : []
+            id: curr.id,
+            status: curr.status,
+            totalAmount: curr.totalAmount,
+            createdAt: curr.createdAt,
+            items: curr.items ? [curr.items] : [],
+            deliveries: curr.deliveries ? [curr.deliveries] : []
           });
         }
         return acc;
@@ -497,7 +519,8 @@ export function registerRoutes(app: Express) {
       const { status } = req.body;
       const deliveryId = parseInt(req.params.id);
       
-      const statusToTimestamp = {
+      type DeliveryStatus = 'Assigned' | 'InProgress' | 'Completed';
+      const statusToTimestamp: Record<DeliveryStatus, keyof typeof deliveries.$inferSelect> = {
         'Assigned': 'assignedAt',
         'InProgress': 'startedAt',
         'Completed': 'completedAt'
@@ -505,7 +528,7 @@ export function registerRoutes(app: Express) {
 
       const updateData = {
         status,
-        ...(statusToTimestamp[status] && { [statusToTimestamp[status]]: new Date() })
+        ...(status in statusToTimestamp && { [statusToTimestamp[status as DeliveryStatus]]: new Date() })
       };
 
       const result = await db
