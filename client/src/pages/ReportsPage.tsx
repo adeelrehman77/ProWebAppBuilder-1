@@ -1,4 +1,3 @@
-import { Sidebar } from "@/components/Sidebar";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,9 +72,7 @@ export default function ReportsPage() {
   };
 
   return (
-    <>
-      <Sidebar />
-      <div className="flex-1 p-8">
+    <div className="flex-1 p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Reports</h1>
           <Button variant="outline" className="flex items-center gap-2">
@@ -303,6 +300,5 @@ export default function ReportsPage() {
           </Card>
         </div>
       </div>
-    </>
   );
 }
