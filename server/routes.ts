@@ -62,7 +62,7 @@ export function registerRoutes(app: Express) {
   // Zones Management
   app.get("/api/zones", async (req, res) => {
     try {
-      const result = await db
+      const zonesResult = await db
         .select({
           id: zones.id,
           name: zones.name,
@@ -71,36 +71,32 @@ export function registerRoutes(app: Express) {
           color: zones.color,
           createdAt: zones.createdAt,
           updatedAt: zones.updatedAt,
-          routes: {
-            id: routes.id,
-            name: routes.name,
-          },
         })
         .from(zones)
-        .leftJoin(routes, eq(routes.zoneId, zones.id))
         .orderBy(zones.name);
 
-      // Group routes by zone
-      const zonesWithRoutes = result.reduce((acc: any[], curr) => {
-        const existingZone = acc.find(z => z.id === curr.id);
-        if (existingZone) {
-          if (curr.routes?.id) {
-            existingZone.routes.push(curr.routes);
-          }
-        } else {
-          acc.push({
-            id: curr.id,
-            name: curr.name,
-            description: curr.description,
-            active: curr.active,
-            color: curr.color,
-            createdAt: curr.createdAt,
-            updatedAt: curr.updatedAt,
-            routes: curr.routes?.id ? [curr.routes] : [],
-          });
-        }
-        return acc;
-      }, []);
+      const zonesWithRoutes = await Promise.all(
+        zonesResult.map(async (zone) => {
+          const routesForZone = await db
+            .select({
+              id: routes.id,
+              name: routes.name,
+              description: routes.description,
+              estimatedTime: routes.estimatedTime,
+              maxDeliveries: routes.maxDeliveries,
+              active: routes.active,
+              startLocation: routes.startLocation,
+              endLocation: routes.endLocation
+            })
+            .from(routes)
+            .where(eq(routes.zoneId, zone.id));
+
+          return {
+            ...zone,
+            routes: routesForZone
+          };
+        })
+      );
 
       res.json(zonesWithRoutes);
     } catch (error) {
@@ -261,10 +257,10 @@ export function registerRoutes(app: Express) {
       const ordersWithDetails = result.reduce<OrderWithDetails[]>((acc, curr) => {
         const existingOrder = acc.find(o => o.id === curr.id);
         if (existingOrder) {
-          if (curr.items && !existingOrder.items.some(i => i.id === curr.items.id)) {
+          if (curr.items?.id && !existingOrder.items.some(i => i.id === curr.items?.id)) {
             existingOrder.items.push(curr.items);
           }
-          if (curr.deliveries && !existingOrder.deliveries.some(d => d.id === curr.deliveries.id)) {
+          if (curr.deliveries?.id && !existingOrder.deliveries.some(d => d.id === curr.deliveries?.id)) {
             existingOrder.deliveries.push(curr.deliveries);
           }
         } else {
@@ -273,8 +269,8 @@ export function registerRoutes(app: Express) {
             status: curr.status,
             totalAmount: curr.totalAmount,
             createdAt: curr.createdAt,
-            items: curr.items ? [curr.items] : [],
-            deliveries: curr.deliveries ? [curr.deliveries] : []
+            items: curr.items?.id ? [curr.items] : [],
+            deliveries: curr.deliveries?.id ? [curr.deliveries] : []
           });
         }
         return acc;
@@ -417,51 +413,15 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Subscriptions
-  app.post("/api/subscriptions", async (req, res) => {
-    try {
-      const { products: items, ...subscriptionData } = req.body;
+  // Subscriptions endpoints will be implemented later
 
-      const result = await db.transaction(async (tx) => {
-        // Create subscription with properly formatted dates
-        const [subscription] = await tx
-          .insert(subscriptions)
-          .values({
-            ...subscriptionData,
-            startDate: new Date(subscriptionData.startDate),
-            endDate: new Date(subscriptionData.endDate),
-            status: "pending",
-          })
-          .returning();
-
-        // Create subscription items
-        await Promise.all(
-          items.map(async (item: { id: number; quantity: number }) => {
-            await tx
-              .insert(subscriptionItems)
-              .values({
-                subscriptionId: subscription.id,
-                productId: item.id,
-                quantity: item.quantity,
-              });
-          })
-        );
-
-        return subscription;
-      });
-
-      res.json(result);
-    } catch (error) {
-      console.error('Error creating subscription:', error);
-      res.status(500).json({ error: 'Failed to create subscription' });
-    }
-  });
-
-  const httpServer = createServer(app);
   // Routes management
   app.get("/api/routes", async (req, res) => {
     try {
-      const result = await db.select().from(routes).orderBy(routes.name);
+      const result = await db
+        .select()
+        .from(routes)
+        .orderBy(routes.name);
       res.json(result);
     } catch (error) {
       console.error('Error fetching routes:', error);
@@ -540,13 +500,13 @@ export function registerRoutes(app: Express) {
           date: deliveries.date,
           slot: deliveries.slot,
           status: deliveries.status,
+          notes: deliveries.notes,
           assignedAt: deliveries.assignedAt,
           startedAt: deliveries.startedAt,
           completedAt: deliveries.completedAt,
           route: {
             id: routes.id,
             name: routes.name,
-            areas: routes.areas,
             estimatedTime: routes.estimatedTime,
             maxDeliveries: routes.maxDeliveries,
             startLocation: routes.startLocation,
@@ -572,29 +532,17 @@ export function registerRoutes(app: Express) {
         .leftJoin(drivers, eq(deliveries.driverId, drivers.id))
         .leftJoin(orders, eq(deliveries.orderId, orders.id))
         .orderBy(deliveries.date);
-      
-      const formattedResult = result.map(delivery => {
-        const formattedDelivery = {
-          ...delivery,
-          date: delivery.date ? new Date(delivery.date).toISOString() : null,
-          assignedAt: delivery.assignedAt ? new Date(delivery.assignedAt).toISOString() : null,
-          startedAt: delivery.startedAt ? new Date(delivery.startedAt).toISOString() : null,
-          completedAt: delivery.completedAt ? new Date(delivery.completedAt).toISOString() : null,
-        };
-        
-        // Clean up null relations
-        if (!formattedDelivery.route?.id) {
-          formattedDelivery.route = null;
-        }
-        if (!formattedDelivery.driver?.id) {
-          formattedDelivery.driver = null;
-        }
-        if (!formattedDelivery.order?.id) {
-          formattedDelivery.order = null;
-        }
-        
-        return formattedDelivery;
-      });
+
+      const formattedResult = result.map(delivery => ({
+        ...delivery,
+        date: delivery.date instanceof Date ? delivery.date.toISOString() : null,
+        assignedAt: delivery.assignedAt instanceof Date ? delivery.assignedAt.toISOString() : null,
+        startedAt: delivery.startedAt instanceof Date ? delivery.startedAt.toISOString() : null,
+        completedAt: delivery.completedAt instanceof Date ? delivery.completedAt.toISOString() : null,
+        route: delivery.route?.id ? delivery.route : null,
+        driver: delivery.driver?.id ? delivery.driver : null,
+        order: delivery.order?.id ? delivery.order : null
+      }));
 
       res.json(formattedResult);
     } catch (error) {
@@ -603,23 +551,21 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Add endpoint to update delivery status
+  // Update delivery status
   app.put("/api/deliveries/:id/status", async (req, res) => {
     try {
       const { status } = req.body;
       const deliveryId = parseInt(req.params.id);
       
-      type DeliveryStatus = 'Assigned' | 'InProgress' | 'Completed';
-      const statusToTimestamp: Record<DeliveryStatus, keyof typeof deliveries.$inferSelect> = {
-        'Assigned': 'assignedAt',
-        'InProgress': 'startedAt',
-        'Completed': 'completedAt'
-      };
-
-      const updateData = {
-        status,
-        ...(status in statusToTimestamp && { [statusToTimestamp[status as DeliveryStatus]]: new Date() })
-      };
+      const updateData: Record<string, any> = { status };
+      
+      if (status === 'Assigned') {
+        updateData.assignedAt = new Date();
+      } else if (status === 'InProgress') {
+        updateData.startedAt = new Date();
+      } else if (status === 'Completed') {
+        updateData.completedAt = new Date();
+      }
 
       const result = await db
         .update(deliveries)
@@ -643,5 +589,5 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  return httpServer;
+  return createServer(app);
 }
