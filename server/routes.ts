@@ -307,40 +307,110 @@ export function registerRoutes(app: Express) {
   // Subscriptions
   app.post("/api/subscriptions", async (req, res) => {
     try {
-      const { products: items, ...subscriptionData } = req.body;
+      const { subscription: subscriptionData, items } = req.body;
 
       const result = await db.transaction(async (tx) => {
-        // Create subscription with properly formatted dates
+        // Create customer record first
+        const [customer] = await tx
+          .insert(customers)
+          .values({
+            name: subscriptionData.name,
+            phone: subscriptionData.contactNumber,
+            balance: 0.00,
+            isActive: true,
+            route: subscriptionData.location,
+            registeredOn: new Date().toISOString()
+          })
+          .returning();
+
+        // Format dates properly for database
+        const startDate = new Date(subscriptionData.startDate);
+        const endDate = new Date(subscriptionData.endDate);
+
+        // Create subscription
         const [subscription] = await tx
           .insert(subscriptions)
           .values({
-            ...subscriptionData,
-            startDate: new Date(subscriptionData.startDate),
-            endDate: new Date(subscriptionData.endDate),
+            name: subscriptionData.name,
+            contactNumber: subscriptionData.contactNumber,
+            address: subscriptionData.address,
+            location: subscriptionData.location,
+            buildingName: subscriptionData.buildingName,
+            flatNumber: subscriptionData.flatNumber,
+            paymentMode: subscriptionData.paymentMode,
+            startDate: startDate,
+            endDate: endDate,
             status: "pending",
           })
           .returning();
 
         // Create subscription items
         await Promise.all(
-          items.map(async (item: { id: number; quantity: number }) => {
+          items.map(async (item: { productId: number; quantity: number; price: number }) => {
             await tx
               .insert(subscriptionItems)
               .values({
                 subscriptionId: subscription.id,
-                productId: item.id,
+                productId: item.productId,
                 quantity: item.quantity,
               });
           })
         );
 
-        return subscription;
+        // Create initial order for the subscription
+        const [order] = await tx
+          .insert(orders)
+          .values({
+            status: "Pending",
+            totalAmount: subscriptionData.totalAmount,
+            paymentStatus: "Pending",
+            paymentMethod: subscriptionData.paymentMode,
+          })
+          .returning();
+
+        // Create order items
+        await Promise.all(
+          items.map(async (item: { productId: number; quantity: number; price: number }) => {
+            await tx
+              .insert(orderItems)
+              .values({
+                orderId: order.id,
+                productId: item.productId,
+                quantity: item.quantity,
+                price: item.price,
+              });
+          })
+        );
+
+        // Create initial delivery for tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setUTCHours(0, 0, 0, 0);
+
+        await tx
+          .insert(deliveries)
+          .values({
+            orderId: order.id,
+            date: tomorrow,
+            slot: "lunch", // Default to lunch slot
+            status: "Pending",
+          });
+
+        return {
+          subscription,
+          order,
+          customer
+        };
       });
 
+      console.log('Created subscription with associated records:', result);
       res.json(result);
     } catch (error) {
       console.error('Error creating subscription:', error);
-      res.status(500).json({ error: 'Failed to create subscription' });
+      res.status(500).json({ 
+        error: 'Failed to create subscription',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
