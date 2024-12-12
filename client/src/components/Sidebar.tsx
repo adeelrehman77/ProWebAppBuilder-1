@@ -36,9 +36,8 @@ export function Sidebar() {
   const [location] = useLocation();
   const { logout } = useUser();
 
-  const linkClasses = "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-white";
-  const activeClasses = "bg-emerald-800";
-  const inactiveClasses = "hover:bg-emerald-800";
+  const linkClasses = "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-white hover:bg-emerald-800";
+  const activeClasses = "bg-emerald-800 text-white";
 
   return (
     <div className="flex flex-col h-screen w-64 bg-emerald-900">
@@ -58,11 +57,11 @@ export function Sidebar() {
                     <button
                       className={cn(
                         linkClasses,
-                        location === item.href ? activeClasses : inactiveClasses
+                        location === item.href && activeClasses
                       )}
                     >
-                      <Icon className="h-5 w-5" />
-                      {item.label}
+                      <Icon className="h-5 w-5 text-white" />
+                      <span className="text-white">{item.label}</span>
                     </button>
                   </Link>
                 </li>
@@ -84,11 +83,11 @@ export function Sidebar() {
                       <button
                         className={cn(
                           linkClasses,
-                          location === item.href ? activeClasses : inactiveClasses
+                          location === item.href && activeClasses
                         )}
                       >
-                        <Icon className="h-5 w-5" />
-                        {item.label}
+                        <Icon className="h-5 w-5 text-white" />
+                        <span className="text-white">{item.label}</span>
                       </button>
                     </Link>
                   </li>
@@ -107,11 +106,11 @@ export function Sidebar() {
                     <button
                       className={cn(
                         linkClasses,
-                        location === item.href ? activeClasses : inactiveClasses
+                        location === item.href && activeClasses
                       )}
                     >
-                      <Icon className="h-5 w-5" />
-                      {item.label}
+                      <Icon className="h-5 w-5 text-white" />
+                      <span className="text-white">{item.label}</span>
                     </button>
                   </Link>
                 </li>
@@ -127,8 +126,8 @@ export function Sidebar() {
           className="w-full justify-start text-white hover:bg-emerald-800"
           onClick={() => logout()}
         >
-          <LogOut className="mr-2 h-5 w-5" />
-          Logout
+          <LogOut className="mr-2 h-5 w-5 text-white" />
+          <span className="text-white">Logout</span>
         </Button>
       </div>
     </div>
