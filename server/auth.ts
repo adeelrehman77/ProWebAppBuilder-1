@@ -32,7 +32,7 @@ const crypto = {
 export function setupAuth(app: Express) {
   const MemoryStore = createMemoryStore(session);
 
-  app.use(session({
+  const sessionConfig = {
     secret: process.env.REPL_ID || 'restaurant-management-system',
     resave: false,
     saveUninitialized: false,
@@ -40,25 +40,41 @@ export function setupAuth(app: Express) {
       checkPeriod: 86400000 // prune expired entries every 24h
     }),
     cookie: { 
-      secure: false, // Set to false for development
+      secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
       sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
-  }));
+  };
+
+  if (process.env.NODE_ENV === 'development') {
+    sessionConfig.cookie.secure = false;
+  }
+
+  app.use(session(sessionConfig));
 
   app.use(passport.initialize());
   app.use(passport.session());
 
   passport.use(new LocalStrategy(async (username, password, done) => {
     try {
+      if (!username || !password) {
+        return done(null, false, { message: "Username and password are required" });
+      }
+
       console.log('Attempting login for username:', username);
       
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.username, username))
-        .limit(1);
+      let user;
+      try {
+        [user] = await db
+          .select()
+          .from(users)
+          .where(eq(users.username, username))
+          .limit(1);
+      } catch (dbError) {
+        console.error('Database error during authentication:', dbError);
+        return done(null, false, { message: "Authentication service temporarily unavailable" });
+      }
 
       if (!user) {
         console.log('User not found');
@@ -75,7 +91,7 @@ export function setupAuth(app: Express) {
       return done(null, user);
     } catch (err) {
       console.error('Authentication error:', err);
-      return done(err);
+      return done(null, false, { message: "Authentication failed" });
     }
   }));
 
