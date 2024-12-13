@@ -247,6 +247,7 @@ export const customers = pgTable("customers", {
   balance: integer("balance").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
   route: text("route"),
+  address: text("address"), // Add this line
   registeredOn: timestamp("registered_on").defaultNow(),
   lastUpdated: timestamp("last_updated").defaultNow(),
 });
